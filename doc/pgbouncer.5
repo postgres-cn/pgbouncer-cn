@@ -1,0 +1,876 @@
+.\" Man page generated from reStructeredText.
+.
+.TH PGBOUNCER.INI 5 "2006-10-23" "1.7" "Databases"
+.SH NAME
+pgbouncer.ini \- configuration file for pgbouncer
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH DESCRIPTION
+.sp
+Config file is in "ini" format. Section names are between "[" and "]".  Lines
+starting with ";" or "#" are taken as comments and ignored. The characters ";"
+and "#" are not recognized when they appear later in the line.
+.SH GENERIC SETTINGS
+.SS logfile
+.sp
+Specifies log file. Log file is kept open so after rotation \fBkill \-HUP\fP
+or on console \fBRELOAD;\fP should be done.
+Note: On Windows machines, the service must be stopped and started.
+.sp
+Default: not set.
+.SS pidfile
+.sp
+Specifies the pid file. Without a pidfile, daemonization is not allowed.
+.sp
+Default: not set.
+.SS listen_addr
+.sp
+Specifies list of addresses, where to listen for TCP connections.
+You may also use \fB*\fP meaning "listen on all addresses". When not set,
+only Unix socket connections are allowed.
+.sp
+Addresses can be specified numerically (IPv4/IPv6) or by name.
+.sp
+Default: not set
+.SS listen_port
+.sp
+Which port to listen on. Applies to both TCP and Unix sockets.
+.sp
+Default: 6432
+.SS unix_socket_dir
+.sp
+Specifies location for Unix sockets. Applies to both listening socket and
+server connections. If set to an empty string, Unix sockets are disabled.
+Required for online reboot (\-R) to work.
+Note: Not supported on Windows machines.
+.sp
+Default: /tmp
+.SS unix_socket_mode
+.sp
+Filesystem mode for unix socket.
+.sp
+Default: 0777
+.SS unix_socket_group
+.sp
+Group name to use for unix socket.
+.sp
+Default: not set
+.SS user
+.sp
+If set, specifies the Unix user to change to after startup. Works only if
+PgBouncer is started as root or if it\(aqs already running as given user.
+.sp
+Note: Not supported on Windows machines.
+.sp
+Default: not set
+.SS auth_file
+.sp
+The name of the file to load user names and passwords from. The file format
+is the same as the PostgreSQL 8.x pg_auth/pg_pwd file, so this setting can be
+pointed directly to one of those backend files.  Since version 9.0, PostgreSQL
+does not use such text file, so it must be generated manually.  See
+section \fI\%Authentication file format\fP below about details.
+.sp
+Default: not set.
+.SS auth_hba_file
+.sp
+HBA configuration file to use when \fI\%auth_type\fP is \fBhba\fP.
+Supported from version 1.7 onwards.
+.sp
+Default: not set
+.SS auth_type
+.sp
+How to authenticate users.
+.INDENT 0.0
+.TP
+.B hba
+Actual auth type is loaded from \fI\%auth_hba_file\fP.  This allows different
+authentication methods different access paths.  Example: connection
+over unix socket use \fBpeer\fP auth method, connection over TCP
+must use TLS. Supported from version 1.7 onwards.
+.TP
+.B cert
+Client must connect over TLS connection with valid client cert.
+Username is then taken from CommonName field from certificate.
+.TP
+.B md5
+Use MD5\-based password check. \fI\%auth_file\fP may contain both MD5\-encrypted
+or plain\-text passwords.  This is the default authentication method.
+.TP
+.B plain
+Clear\-text password is sent over wire.  Deprecated.
+.TP
+.B trust
+No authentication is done. Username must still exist in \fI\%auth_file\fP.
+.TP
+.B any
+Like the \fBtrust\fP method, but the username given is ignored. Requires that all
+databases are configured to log in as specific user.  Additionally, the console
+database allows any user to log in as admin.
+.UNINDENT
+.SS auth_query
+.sp
+Query to load user\(aqs password from database.
+.sp
+Direct access to pg_shadow requires admin rights.  It\(aqs preferable to
+use non\-admin user that calls SECURITY DEFINER function instead.
+.sp
+Default: \fBSELECT usename, passwd FROM pg_shadow WHERE usename=$1\fP
+.SS pool_mode
+.sp
+Specifies when a server connection can be reused by other clients.
+.INDENT 0.0
+.TP
+.B session
+Server is released back to pool after client disconnects.  Default.
+.TP
+.B transaction
+Server is released back to pool after transaction finishes.
+.TP
+.B statement
+Server is released back to pool after query finishes. Long transactions
+spanning multiple statements are disallowed in this mode.
+.UNINDENT
+.SS max_client_conn
+.sp
+Maximum number of client connections allowed.  When increased then the file
+descriptor limits should also be increased.  Note that actual number of file
+descriptors used is more than max_client_conn.  Theoretical maximum used is:
+.sp
+.nf
+.ft C
+max_client_conn + (max_pool_size * total_databases * total_users)
+.ft P
+.fi
+.sp
+if each user connects under its own username to server.  If a database user
+is specified in connect string (all users connect under same username),
+the theoretical maximum is:
+.sp
+.nf
+.ft C
+max_client_conn + (max_pool_size * total_databases)
+.ft P
+.fi
+.sp
+The theoretical maximum should be never reached, unless somebody deliberately
+crafts special load for it.  Still, it means you should set the number of
+file descriptors to a safely high number.
+.sp
+Search for \fBulimit\fP in your favourite shell man page.
+Note: \fBulimit\fP does not apply in a Windows environment.
+.sp
+Default: 100
+.SS default_pool_size
+.sp
+How many server connections to allow per user/database pair. Can be overridden in
+the per\-database configuration.
+.sp
+Default: 20
+.SS min_pool_size
+.sp
+Add more server connections to pool if below this number.
+Improves behaviour when usual load comes suddenly back after period
+of total inactivity.
+.sp
+Default: 0 (disabled)
+.SS reserve_pool_size
+.sp
+How many additional connections to allow to a pool. 0 disables.
+.sp
+Default: 0 (disabled)
+.SS reserve_pool_timeout
+.sp
+If a client has not been serviced in this many seconds, pgbouncer enables
+use of additional connections from reserve pool.  0 disables.
+.sp
+Default: 5.0
+.SS max_db_connections
+.sp
+Do not allow more than this many connections per\-database (regardless of pool \- i.e.
+user). It should be noted that when you hit the limit, closing a client connection
+to one pool will not immediately allow a server connection to be established for
+another pool, because the server connection for the first pool is still open.
+Once the server connection closes (due to idle timeout), a new server connection
+will immediately be opened for the waiting pool.
+.sp
+Default: unlimited
+.SS max_user_connections
+.sp
+Do not allow more than this many connections per\-user (regardless of pool \- i.e.
+user). It should be noted that when you hit the limit, closing a client connection
+to one pool will not immediately allow a server connection to be established for
+another pool, because the server connection for the first pool is still open.
+Once the server connection closes (due to idle timeout), a new server connection
+will immediately be opened for the waiting pool.
+.SS server_round_robin
+.sp
+By default, pgbouncer reuses server connections in LIFO (last\-in, first\-out) manner,
+so that few connections get the most load.  This gives best performance if you have
+a single server serving a database.  But if there is TCP round\-robin behind a database
+IP, then it is better if pgbouncer also uses connections in that manner, thus
+achieving uniform load.
+.sp
+Default: 0
+.SS ignore_startup_parameters
+.sp
+By default, PgBouncer allows only parameters it can keep track of in startup
+packets \- \fBclient_encoding\fP, \fBdatestyle\fP, \fBtimezone\fP and \fBstandard_conforming_strings\fP.
+.sp
+All others parameters will raise an error.  To allow others parameters, they can be
+specified here, so that pgbouncer knows that they are handled by admin and it can ignore them.
+.sp
+Default: empty
+.SS disable_pqexec
+.sp
+Disable Simple Query protocol (PQexec).  Unlike Extended Query protocol, Simple Query
+allows multiple queries in one packet, which allows some classes of SQL\-injection
+attacks.  Disabling it can improve security.  Obviously this means only clients that
+exclusively use Extended Query protocol will stay working.
+.sp
+Default: 0
+.SS application_name_add_host
+.sp
+Add the client host address and port to the application name setting set on connection start.
+This helps in identifying the source of bad queries etc.  This logic applies
+only on start of connection, if application_name is later changed with SET,
+pgbouncer does not change it again.
+.sp
+Default: 0
+.SS conffile
+.sp
+Show location of current config file.  Changing it will make PgBouncer use another
+config file for next \fBRELOAD\fP / \fBSIGHUP\fP.
+.sp
+Default: file from command line.
+.SS service_name
+.sp
+Used on win32 service registration.
+.sp
+Default: pgbouncer
+.SS job_name
+.sp
+Alias for \fI\%service_name\fP.
+.SH LOG SETTINGS
+.SS syslog
+.sp
+Toggles syslog on/off
+As for windows environment, eventlog is used instead.
+.sp
+Default: 0
+.SS syslog_ident
+.sp
+Under what name to send logs to syslog.
+.sp
+Default: pgbouncer (program name)
+.SS syslog_facility
+.sp
+Under what facility to send logs to syslog.
+Possibilities: \fBauth\fP, \fBauthpriv\fP, \fBdaemon\fP, \fBuser\fP, \fBlocal0\-7\fP.
+.sp
+Default: daemon
+.SS log_connections
+.sp
+Log successful logins.
+.sp
+Default: 1
+.SS log_disconnections
+.sp
+Log disconnections with reasons.
+.sp
+Default: 1
+.SS log_pooler_errors
+.sp
+Log error messages pooler sends to clients.
+.sp
+Default: 1
+.SS stats_period
+.sp
+Period for writing aggregated stats into log.
+.sp
+Default: 60
+.SS verbose
+.sp
+Increase verbosity.  Mirrors "\-v" switch on command line.
+Using "\-v \-v" on command line is same as \fIverbose=2\fP in config.
+.sp
+Default: 0
+.SH CONSOLE ACCESS CONTROL
+.SS admin_users
+.sp
+Comma\-separated list of database users that are allowed to connect and
+run all commands on console.  Ignored when \fI\%auth_type\fP is \fBany\fP,
+in which case any username is allowed in as admin.
+.sp
+Default: empty
+.SS stats_users
+.sp
+Comma\-separated list of database users that are allowed to connect and
+run read\-only queries on console. Thats means all SHOW commands except
+SHOW FDS.
+.sp
+Default: empty.
+.SH CONNECTION SANITY CHECKS, TIMEOUTS
+.SS server_reset_query
+.sp
+Query sent to server on connection release, before making it
+available to other clients.  At that moment no transaction is in
+progress so it should not include \fBABORT\fP or \fBROLLBACK\fP.
+.sp
+The query is supposed to clean any changes made to database session
+so that next client gets connection in well\-defined state.  Default is
+\fBDISCARD ALL\fP which cleans everything, but that leaves next client
+no pre\-cached state.  It can be made lighter, eg \fBDEALLOCATE ALL\fP
+to just drop prepared statements, if application does not break when
+some state is kept around.
+.sp
+When transaction pooling is used, the \fI\%server_reset_query\fP is not used,
+as clients must not use any session\-based features as each transaction
+ends up in different connection and thus gets different session state.
+.sp
+Default: DISCARD ALL
+.SS server_reset_query_always
+.sp
+Whether \fI\%server_reset_query\fP should be run in all pooling modes.  When this
+setting is off (default), the \fI\%server_reset_query\fP will be run only in pools
+that are in sessions\-pooling mode.  Connections in transaction\-pooling mode
+should not have any need for reset query.
+.sp
+It is workaround for broken setups that run apps that use session features
+over transaction\-pooled pgbouncer.  Is changes non\-deterministic breakage
+to deterministic breakage \- client always lose their state after each
+transaction.
+.sp
+Default: 0
+.SS server_check_delay
+.sp
+How long to keep released connections available for immediate re\-use, without running
+sanity\-check queries on it. If 0 then the query is ran always.
+.sp
+Default: 30.0
+.SS server_check_query
+.sp
+Simple do\-nothing query to check if the server connection is alive.
+.sp
+If an empty string, then sanity checking is disabled.
+.sp
+Default: SELECT 1;
+.SS server_lifetime
+.sp
+The pooler will try to close server connections that have been connected longer
+than this. Setting it to 0 means the connection is to be used only once,
+then closed. [seconds]
+.sp
+Default: 3600.0
+.SS server_idle_timeout
+.sp
+If a server connection has been idle more than this many seconds it will be dropped.
+If 0 then timeout is disabled.  [seconds]
+.sp
+Default: 600.0
+.SS server_connect_timeout
+.sp
+If connection and login won\(aqt finish in this amount of time, the connection
+will be closed. [seconds]
+.sp
+Default: 15.0
+.SS server_login_retry
+.sp
+If login failed, because of failure from connect() or authentication that
+pooler waits this much before retrying to connect. [seconds]
+.sp
+Default: 15.0
+.SS client_login_timeout
+.sp
+If a client connects but does not manage to login in this amount of time, it
+will be disconnected. Mainly needed to avoid dead connections stalling
+SUSPEND and thus online restart. [seconds]
+.sp
+Default: 60.0
+.SS autodb_idle_timeout
+.sp
+If the automatically created (via "*") database pools have
+been unused this many seconds, they are freed.  The negative
+aspect of that is that their statistics are also forgotten.  [seconds]
+.sp
+Default: 3600.0
+.SS dns_max_ttl
+.sp
+How long the DNS lookups can be cached.  If a DNS lookup returns
+several answers, pgbouncer will robin\-between them in the meantime.
+Actual DNS TTL is ignored.  [seconds]
+.sp
+Default: 15.0
+.SS dns_nxdomain_ttl
+.sp
+How long error and NXDOMAIN DNS lookups can be cached. [seconds]
+.sp
+Default: 15.0
+.SS dns_zone_check_period
+.sp
+Period to check if zone serial has changed.
+.sp
+PgBouncer can collect dns zones from hostnames (everything after first dot)
+and then periodically check if zone serial changes.
+If it notices changes, all hostnames under that zone
+are looked up again.  If any host ip changes, it\(aqs connections
+are invalidated.
+.sp
+Works only with UDNS backend (\fB\-\-with\-udns\fP to configure).
+.sp
+Default: 0.0 (disabled)
+.SH TLS SETTINGS
+.SS client_tls_sslmode
+.sp
+TLS mode to use for connections from clients.  TLS connections
+are disabled by default.  When enabled, \fI\%client_tls_key_file\fP
+and \fI\%client_tls_cert_file\fP must be also configured to set up
+key and cert PgBouncer uses to accept client connections.
+.INDENT 0.0
+.TP
+.B disable
+Plain TCP.  If client requests TLS, it\(aqs ignored.  Default.
+.TP
+.B allow
+If client requests TLS, it is used.  If not, plain TCP is used.
+If client uses client\-certificate, it is not validated.
+.TP
+.B prefer
+Same as \fBallow\fP.
+.TP
+.B require
+Client must use TLS.  If not, client connection is rejected.
+If client uses client\-certificate, it is not validated.
+.TP
+.B verify\-ca
+Client must use TLS with valid client certificate.
+.TP
+.B verify\-full
+Same as \fBverify\-ca\fP.
+.UNINDENT
+.SS client_tls_key_file
+.sp
+Private key for PgBouncer to accept client connections.
+.sp
+Default: not set.
+.SS client_tls_cert_file
+.sp
+Certificate for private key.  Clients can validate it.
+.sp
+Default: not set.
+.SS client_tls_ca_file
+.sp
+Root certificate file to validate client certificates.
+.sp
+Default: unset.
+.SS client_tls_protocols
+.sp
+Which TLS protocol versions are allowed.  Allowed values: \fBtlsv1.0\fP, \fBtlsv1.1\fP, \fBtlsv1.2\fP.
+Shortcuts: \fBall\fP (tlsv1.0,tlsv1.1,tlsv1.2), \fBsecure\fP (tlsv1.2), \fBlegacy\fP (all).
+.sp
+Default: \fBall\fP
+.SS client_tls_ciphers
+.sp
+Default: \fBfast\fP
+.SS client_tls_ecdhcurve
+.sp
+Elliptic Curve name to use for ECDH key exchanges.
+.sp
+Allowed values: \fBnone\fP (DH is disabled), \fBauto\fP (256\-bit ECDH), curve name.
+.sp
+Default: \fBauto\fP
+.SS client_tls_dheparams
+.sp
+DHE key exchange type.
+.sp
+Allowed values: \fBnone\fP (DH is disabled), \fBauto\fP (2048\-bit DH), \fBlegacy\fP (1024\-bit DH).
+.sp
+Default: \fBauto\fP
+.SS server_tls_sslmode
+.sp
+TLS mode to use for connections to PostgreSQL servers.
+TLS connections are disabled by default.
+.INDENT 0.0
+.TP
+.B disable
+Plain TCP.  TCP is not event requested from server.  Default.
+.TP
+.B allow
+FIXME: if server rejects plain, try TLS?
+.TP
+.B prefer
+TLS connection is always requested first from PostgreSQL,
+when refused connection will be establised over plain TCP.
+Server certificate is not validated.
+.TP
+.B require
+Connection must go over TLS.  If server rejects it,
+plain TCP is not attempted.  Server certificate is not validated.
+.TP
+.B verify\-ca
+Connection must go over TLS and server certificate must be valid
+according to \fI\%server_tls_ca_file\fP.  Server hostname is not checked
+against certificate.
+.TP
+.B verify\-full
+Connection must go over TLS and server certificate must be valid
+according to \fI\%server_tls_ca_file\fP.  Server hostname must match
+certificate info.
+.UNINDENT
+.SS server_tls_ca_file
+.sp
+Root certificate file to validate PostgreSQL server certificates.
+.sp
+Default: unset.
+.SS server_tls_key_file
+.sp
+Private key for PgBouncer to authenticate against PostgreSQL server.
+.sp
+Default: not set.
+.SS server_tls_cert_file
+.sp
+Certificate for private key.  PostgreSQL server can validate it.
+.sp
+Default: not set.
+.SS server_tls_protocols
+.sp
+Which TLS protocol versions are allowed.  Allowed values: \fBtlsv1.0\fP, \fBtlsv1.1\fP, \fBtlsv1.2\fP.
+Shortcuts: \fBall\fP (tlsv1.0,tlsv1.1,tlsv1.2), \fBsecure\fP (tlsv1.2), \fBlegacy\fP (all).
+.sp
+Default: \fBall\fP
+.SS server_tls_ciphers
+.sp
+Default: \fBfast\fP
+.SH DANGEROUS TIMEOUTS
+.sp
+Setting following timeouts cause unexpected errors.
+.SS query_timeout
+.sp
+Queries running longer than that are canceled. This should be used only with
+slightly smaller server\-side statement_timeout, to apply only for network
+problems. [seconds]
+.sp
+Default: 0.0 (disabled)
+.SS query_wait_timeout
+.sp
+Maximum time queries are allowed to spend waiting for execution. If the query
+is not assigned to a server during that time, the client is disconnected. This
+is used to prevent unresponsive servers from grabbing up connections. [seconds]
+.sp
+It also helps when server is down or database rejects connections for any reason.
+If this is disabled, clients will be queued infinitely.
+.sp
+Default: 120
+.SS client_idle_timeout
+.sp
+Client connections idling longer than this many seconds are closed. This should
+be larger than the client\-side connection lifetime settings, and only used
+for network problems. [seconds]
+.sp
+Default: 0.0 (disabled)
+.SS idle_transaction_timeout
+.sp
+If client has been in "idle in transaction" state longer,
+it will be disconnected.  [seconds]
+.sp
+Default: 0.0 (disabled)
+.SH LOW-LEVEL NETWORK SETTINGS
+.SS pkt_buf
+.sp
+Internal buffer size for packets. Affects size of TCP packets sent and general
+memory usage. Actual libpq packets can be larger than this so, no need to set it
+large.
+.sp
+Default: 4096
+.SS max_packet_size
+.sp
+Maximum size for Postgres packets that PgBouncer allows through.  One packet
+is either one query or one resultset row.  Full resultset can be larger.
+.sp
+Default: 2147483647
+.SS listen_backlog
+.sp
+Backlog argument for listen(2).  Determines how many new unanswered connection
+attempts are kept in queue.  When queue is full, further new connections are dropped.
+.sp
+Default: 128
+.SS sbuf_loopcnt
+.sp
+How many times to process data on one connection, before proceeding.
+Without this limit, one connection with a big resultset can stall
+PgBouncer for a long time.  One loop processes one \fI\%pkt_buf\fP amount of data.
+0 means no limit.
+.sp
+Default: 5
+.SS suspend_timeout
+.sp
+How many seconds to wait for buffer flush during SUSPEND or reboot (\-R).
+Connection is dropped if flush does not succeed.
+.sp
+Default: 10
+.SS tcp_defer_accept
+.sp
+For details on this and other tcp options, please see \fBman 7 tcp\fP.
+.sp
+Default: 45 on Linux, otherwise 0
+.SS tcp_socket_buffer
+.sp
+Default: not set
+.SS tcp_keepalive
+.sp
+Turns on basic keepalive with OS defaults.
+.sp
+On Linux, the system defaults are \fBtcp_keepidle=7200\fP, \fBtcp_keepintvl=75\fP,
+\fBtcp_keepcnt=9\fP.  They are probably similar on other OS\-es.
+.sp
+Default: 1
+.SS tcp_keepcnt
+.sp
+Default: not set
+.SS tcp_keepidle
+.sp
+Default: not set
+.SS tcp_keepintvl
+.sp
+Default: not set
+.SH SECTION [DATABASES]
+.sp
+This contains key=value pairs where key will be taken as a database name and
+value as a libpq connect\-string style list of key=value pairs. As actual libpq is not
+used, so not all features from libpq can be used (service=, .pgpass).
+.sp
+Database name can contain characters \fB_0\-9A\-Za\-z\fP without quoting.
+Names that contain other chars need to be quoted with standard SQL
+ident quoting: double quotes where "" is taken as single quote.
+.sp
+"*" acts as fallback database: if the exact name does not exist,
+its value is taken as connect string for requested database.
+Such automatically created database entries are cleaned up
+if they stay idle longer then the time specified in \fI\%autodb_idle_timeout\fP
+parameter.
+.SS dbname
+.sp
+Destination database name.
+.sp
+Default: same as client\-side database name.
+.SS host
+.sp
+Hostname or IP address to connect to.  Hostnames are resolved
+on connect time, the result is cached per \fBdns_max_ttl\fP parameter.
+If DNS returns several results, they are used in round\-robin
+manner.
+.sp
+Default: not set, meaning to use a Unix socket.
+.SS port
+.sp
+Default: 5432
+.SS user, password
+.sp
+If \fBuser=\fP is set, all connections to the destination database will be
+done with the specified user, meaning that there will be only one pool
+for this database.
+.sp
+Otherwise PgBouncer tries to log into the destination database with client
+username, meaning that there will be one pool per user.
+.SS auth_user
+.sp
+If \fBauth_user\fP is set, any user not specified in auth_file will be
+queried from pg_shadow in the database using \fBauth_user\fP. Auth_user\(aqs
+password will be taken from \fBauth_file\fP.
+.sp
+Direct access to pg_shadow requires admin rights.  It\(aqs preferable to
+use non\-admin user that calls SECURITY DEFINER function instead.
+.SS pool_size
+.sp
+Set maximum size of pools for this database.  If not set,
+the default_pool_size is used.
+.SS connect_query
+.sp
+Query to be executed after a connection is established, but before
+allowing the connection to be used by any clients. If the query raises errors,
+they are logged but ignored otherwise.
+.SS pool_mode
+.sp
+Set the pool mode specific to this database. If not set,
+the default pool_mode is used.
+.SS max_db_connections
+.sp
+Configure a database\-wide maximum (i.e. all pools within the database will
+not have more than this many server connections).
+.SS client_encoding
+.sp
+Ask specific \fBclient_encoding\fP from server.
+.SS datestyle
+.sp
+Ask specific \fBdatestyle\fP from server.
+.SS timezone
+.sp
+Ask specific \fBtimezone\fP from server.
+.SH SECTION [USERS]
+.sp
+This contains key=value pairs where key will be taken as a user name and
+value as a libpq connect\-string style list of key=value pairs. As actual libpq is not
+used, so not all features from libpq can be used.
+.SS pool_mode
+.sp
+Set the pool mode to be used for all connections from this user. If not set, the
+database or default pool_mode is used.
+.SH INCLUDE DIRECTIVE
+.sp
+The PgBouncer config file can contain include directives, which specify
+another config file to read and process. This allows for splitting the
+configuration file into physically separate parts. The include directives look
+like this:
+.sp
+.nf
+.ft C
+%include filename
+.ft P
+.fi
+.sp
+If the file name is not absolute path it is taken as relative to current
+working directory.
+.SH AUTHENTICATION FILE FORMAT
+.sp
+PgBouncer needs its own user database. The users are loaded from a text
+file in following format:
+.sp
+.nf
+.ft C
+"username1" "password" ...
+"username2" "md5abcdef012342345" ...
+.ft P
+.fi
+.sp
+There should be at least 2 fields, surrounded by double quotes. The first
+field is the username and the second is either a plain\-text or a MD5\-hidden
+password.  PgBouncer ignores the rest of the line.
+.sp
+This file format is equivalent to text files used by PostgreSQL 8.x
+for authentication info, thus allowing PgBouncer to work directly
+on PostgreSQL authentication files in data directory.
+.sp
+Since PostgreSQL 9.0, the text files are not used anymore.  Thus the
+auth file needs to be generated.   See \fI./etc/mkauth.py\fP for sample script
+to generate auth file from \fIpg_shadow\fP table.
+.sp
+PostgreSQL MD5\-hidden password format:
+.sp
+.nf
+.ft C
+"md5" + md5(password + username)
+.ft P
+.fi
+.sp
+So user \fIadmin\fP with password \fI1234\fP will have MD5\-hidden password
+\fImd545f2603610af569b6155c45067268c6b\fP.
+.SH HBA FILE FORMAT
+.sp
+It follows the format of PostgreSQL pg_hba.conf file \-
+\fI\%http://www.postgresql.org/docs/9.4/static/auth\-pg\-hba\-conf.html\fP
+.sp
+There are following differences:
+.INDENT 0.0
+.IP \(bu 2
+Supported record types: \fIlocal\fP, \fIhost\fP, \fIhostssl\fP, \fIhostnossl\fP.
+.IP \(bu 2
+Database field: Supports \fIall\fP, \fIsameuser\fP, \fI@file\fP, multiple names.  Not supported: \fIreplication\fP, \fIsamerole\fP, \fIsamegroup\fP.
+.IP \(bu 2
+Username field: Supports \fIall\fP, \fI@file\fP, multiple names.  Not supported: \fI+groupname\fP.
+.IP \(bu 2
+Address field: Supported IPv4, IPv6.  Not supported: DNS names, domain prefixes.
+.IP \(bu 2
+Auth\-method field:  Supported methods: \fItrust\fP, \fIreject\fP, \fImd5\fP, \fIpassword\fP, \fIpeer\fP, \fIcert\fP.
+Not supported: \fIgss\fP, \fIsspi\fP, \fIident\fP, \fIldap\fP, \fIradius\fP, \fIpam\fP.
+Also username map (\fImap=\fP) parameter is not supported.
+.UNINDENT
+.SH EXAMPLE
+.sp
+Minimal config:
+.sp
+.nf
+.ft C
+[databases]
+template1 = host=127.0.0.1 dbname=template1 auth_user=someuser
+
+[pgbouncer]
+pool_mode = session
+listen_port = 6543
+listen_addr = 127.0.0.1
+auth_type = md5
+auth_file = users.txt
+logfile = pgbouncer.log
+pidfile = pgbouncer.pid
+admin_users = someuser
+stats_users = stat_collector
+.ft P
+.fi
+.sp
+Database defaults:
+.sp
+.nf
+.ft C
+[databases]
+
+; foodb over unix socket
+foodb =
+
+; redirect bardb to bazdb on localhost
+bardb = host=127.0.0.1 dbname=bazdb
+
+; access to destination database will go with single user
+forcedb = host=127.0.0.1 port=300 user=baz password=foo client_encoding=UNICODE datestyle=ISO
+.ft P
+.fi
+.sp
+Example of secure function for auth_query:
+.sp
+.nf
+.ft C
+CREATE OR REPLACE FUNCTION pgbouncer.user_lookup(in i_username text, out uname text, out phash text)
+RETURNS record AS $$
+BEGIN
+    SELECT usename, passwd FROM pg_catalog.pg_shadow
+    WHERE usename = i_username INTO uname, phash;
+    RETURN;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+REVOKE ALL ON FUNCTION pgbouncer.user_lookup(text) FROM public, pgbouncer;
+GRANT EXECUTE ON FUNCTION pgbouncer.user_lookup(text) TO pgbouncer;
+.ft P
+.fi
+.SH SEE ALSO
+.sp
+\fI\%https://pgbouncer.github.io/\fP
+.sp
+\fI\%https://wiki.postgresql.org/wiki/PgBouncer\fP
+.sp
+pgbouncer(1) \- manpage for general usage, console commands.
+.\" Generated by docutils manpage writer.
+.\" 
+.

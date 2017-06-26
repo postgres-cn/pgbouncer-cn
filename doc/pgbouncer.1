@@ -1,0 +1,612 @@
+.\" Man page generated from reStructeredText.
+.
+.TH PGBOUNCER 1 "2006-10-23" "1.7" "Databases"
+.SH NAME
+pgbouncer \- lightweight connection pooler for PostgreSQL
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH SYNOPSIS
+.sp
+.nf
+.ft C
+pgbouncer [\-d][\-R][\-v][\-u user] <pgbouncer.ini>
+pgbouncer \-V|\-h
+.ft P
+.fi
+.sp
+On Windows computers, the options are:
+.sp
+.nf
+.ft C
+pgbouncer.exe [\-v][\-u user] <pgbouncer.ini>
+pgbouncer.exe \-V|\-h
+.ft P
+.fi
+.sp
+Additional options for setting up a Windows service:
+.sp
+.nf
+.ft C
+pgbouncer.exe \-\-regservice   <pgbouncer.ini>
+pgbouncer.exe \-\-unregservice <pgbouncer.ini>
+.ft P
+.fi
+.SH DESCRIPTION
+.sp
+\fBpgbouncer\fP is a PostgreSQL connection pooler. Any target application
+can be connected to \fBpgbouncer\fP as if it were a PostgreSQL server,
+and \fBpgbouncer\fP will create a connection to the actual server, or it
+will reuse one of its existing connections.
+.sp
+The aim of \fBpgbouncer\fP is to lower the performance impact of opening
+new connections to PostgreSQL.
+.sp
+In order not to compromise transaction semantics for connection
+pooling, \fBpgbouncer\fP supports several types of pooling when
+rotating connections:
+.INDENT 0.0
+.TP
+.B Session pooling
+Most polite method. When client connects, a server connection will
+be assigned to it for the whole duration the client stays connected. When
+the client disconnects, the server connection will be put back into the pool.
+This is the default method.
+.TP
+.B Transaction pooling
+A server connection is assigned to client only during a transaction.
+When PgBouncer notices that transaction is over, the server connection
+will be put back into the pool.
+.TP
+.B Statement pooling
+Most aggressive method. The server connection will be put back into
+pool immediately after a query completes. Multi\-statement
+transactions are disallowed in this mode as they would break.
+.UNINDENT
+.sp
+The administration interface of \fBpgbouncer\fP consists of some new
+\fBSHOW\fP commands available when connected to a special \(aqvirtual\(aq
+database \fBpgbouncer\fP.
+.SH QUICK-START
+.sp
+Basic setup and usage as following.
+.INDENT 0.0
+.IP 1. 3
+Create a pgbouncer.ini file.  Details in \fBpgbouncer(5)\fP.  Simple example:
+.sp
+.nf
+.ft C
+[databases]
+template1 = host=127.0.0.1 port=5432 dbname=template1
+
+[pgbouncer]
+listen_port = 6543
+listen_addr = 127.0.0.1
+auth_type = md5
+auth_file = users.txt
+logfile = pgbouncer.log
+pidfile = pgbouncer.pid
+admin_users = someuser
+.ft P
+.fi
+.IP 2. 3
+Create \fBusers.txt\fP file that contains users allowed in:
+.sp
+.nf
+.ft C
+"someuser" "same_password_as_in_server"
+.ft P
+.fi
+.IP 3. 3
+Launch \fBpgbouncer\fP:
+.sp
+.nf
+.ft C
+$ pgbouncer \-d pgbouncer.ini
+.ft P
+.fi
+.IP 4. 3
+Have your application (or the \fBpsql\fP client) connect to
+\fBpgbouncer\fP instead of directly to PostgreSQL server:
+.sp
+.nf
+.ft C
+$ psql \-p 6543 \-U someuser template1
+.ft P
+.fi
+.IP 5. 3
+Manage \fBpgbouncer\fP by connecting to the special administration
+database \fBpgbouncer\fP and issuing \fBshow help;\fP to begin:
+.sp
+.nf
+.ft C
+$ psql \-p 6543 \-U someuser pgbouncer
+pgbouncer=# show help;
+NOTICE:  Console usage
+DETAIL:
+  SHOW [HELP|CONFIG|DATABASES|FDS|POOLS|CLIENTS|SERVERS|SOCKETS|LISTS|VERSION]
+  SET key = arg
+  RELOAD
+  PAUSE
+  SUSPEND
+  RESUME
+  SHUTDOWN
+.ft P
+.fi
+.IP 6. 3
+If you made changes to the pgbouncer.ini file, you can reload it with:
+.sp
+.nf
+.ft C
+pgbouncer=# RELOAD;
+.ft P
+.fi
+.UNINDENT
+.SH COMMAND LINE SWITCHES
+.INDENT 0.0
+.TP
+.B \-d
+Run in background. Without it the process will run in foreground.
+Note: Does not work on Windows, \fBpgbouncer\fP need to run as service there.
+.TP
+.B \-R
+Do an online restart. That means connecting to the running process,
+loading the open sockets from it, and then using them.  If there
+is no active process, boot normally.
+Note: Works only if OS supports Unix sockets and the \fIunix_socket_dir\fP
+is not disabled in config.  Does not work on Windows machines.
+Does not work with TLS connections, they are dropped.
+.TP
+.BI \-u \ user
+Switch to the given user on startup.
+.TP
+.B \-v
+Increase verbosity.  Can be used multiple times.
+.TP
+.B \-q
+Be quiet \- do not log to stdout.  Note this does not affect
+logging verbosity, only that stdout is not to be used.
+For use in init.d scripts.
+.TP
+.B \-V
+Show version.
+.TP
+.B \-h
+Show short help.
+.TP
+.B \-\-regservice
+Win32: Register pgbouncer to run as Windows service.  The \fBservice_name\fP
+config parameter value is used as name to register under.
+.TP
+.B \-\-unregservice
+Win32: Unregister Windows service.
+.UNINDENT
+.SH ADMIN CONSOLE
+.sp
+The console is available by connecting as normal to the
+database \fBpgbouncer\fP:
+.sp
+.nf
+.ft C
+$ psql \-p 6543 pgbouncer
+.ft P
+.fi
+.sp
+Only users listed in configuration parameters \fBadmin_users\fP or \fBstats_users\fP
+are allowed to login to the console.  (Except when \fIauth_mode=any\fP, then
+any user is allowed in as a stats_user.)
+.sp
+Additionally, the username \fBpgbouncer\fP is allowed to log in without password,
+if the login comes via Unix socket and the client has same Unix user uid
+as the running process.
+.SS Show commands
+.sp
+The \fBSHOW\fP commands output information. Each command is described below.
+.SS SHOW STATS;
+.sp
+Shows statistics.
+.INDENT 0.0
+.TP
+.B database
+Statistics are presented per database.
+.TP
+.B total_requests
+Total number of SQL requests pooled by \fBpgbouncer\fP.
+.TP
+.B total_received
+Total volume in bytes of network traffic received by \fBpgbouncer\fP.
+.TP
+.B total_sent
+Total volume in bytes of network traffic sent by \fBpgbouncer\fP.
+.TP
+.B total_query_time
+Total number of microseconds spent by \fBpgbouncer\fP when actively
+connected to PostgreSQL.
+.TP
+.B avg_req
+Average requests per second in last stat period.
+.TP
+.B avg_recv
+Average received (from clients) bytes per second.
+.TP
+.B avg_sent
+Average sent (to clients) bytes per second.
+.TP
+.B avg_query
+Average query duration in microseconds.
+.UNINDENT
+.SS SHOW SERVERS;
+.INDENT 0.0
+.TP
+.B type
+S, for server.
+.TP
+.B user
+Username \fBpgbouncer\fP uses to connect to server.
+.TP
+.B database
+Database name.
+.TP
+.B state
+State of the pgbouncer server connection, one of \fBactive\fP, \fBused\fP or
+\fBidle\fP.
+.TP
+.B addr
+IP address of PostgreSQL server.
+.TP
+.B port
+Port of PostgreSQL server.
+.TP
+.B local_addr
+Connection start address on local machine.
+.TP
+.B local_port
+Connection start port on local machine.
+.TP
+.B connect_time
+When the connection was made.
+.TP
+.B request_time
+When last request was issued.
+.TP
+.B ptr
+Address of internal object for this connection.
+Used as unique ID.
+.TP
+.B link
+Address of client connection the server is paired with.
+.TP
+.B remote_pid
+Pid of backend server process.  In case connection is made over
+unix socket and OS supports getting process ID info, it\(aqs
+OS pid.  Otherwise it\(aqs extracted from cancel packet server sent,
+which should be PID in case server is Postgres, but it\(aqs a random
+number in case server it another PgBouncer.
+.UNINDENT
+.SS SHOW CLIENTS;
+.INDENT 0.0
+.TP
+.B type
+C, for client.
+.TP
+.B user
+Client connected user.
+.TP
+.B database
+Database name.
+.TP
+.B state
+State of the client connection, one of \fBactive\fP, \fBused\fP, \fBwaiting\fP
+or \fBidle\fP.
+.TP
+.B addr
+IP address of client.
+.TP
+.B port
+Port client is connected to.
+.TP
+.B local_addr
+Connection end address on local machine.
+.TP
+.B local_port
+Connection end port on local machine.
+.TP
+.B connect_time
+Timestamp of connect time.
+.TP
+.B request_time
+Timestamp of latest client request.
+.TP
+.B ptr
+Address of internal object for this connection.
+Used as unique ID.
+.TP
+.B link
+Address of server connection the client is paired with.
+.TP
+.B remote_pid
+Process ID, in case client connects over UNIX socket
+and OS supports getting it.
+.UNINDENT
+.SS SHOW POOLS;
+.sp
+A new pool entry is made for each couple of (database, user).
+.INDENT 0.0
+.TP
+.B database
+Database name.
+.TP
+.B user
+User name.
+.TP
+.B cl_active
+Client connections that are linked to server connection and can process queries.
+.TP
+.B cl_waiting
+Client connections have sent queries but have not yet got a server connection.
+.TP
+.B sv_active
+Server connections that linked to client.
+.TP
+.B sv_idle
+Server connections that unused and immediately usable for client queries.
+.TP
+.B sv_used
+Server connections that have been idle more than \fIserver_check_delay\fP,
+so they needs \fIserver_check_query\fP to run on it before it can be used.
+.TP
+.B sv_tested
+Server connections that are currently running either \fIserver_reset_query\fP
+or \fIserver_check_query\fP.
+.TP
+.B sv_login
+Server connections currently in logging in process.
+.TP
+.B maxwait
+How long the first (oldest) client in queue has waited, in seconds.
+If this starts increasing, then the current pool of servers does
+not handle requests quick enough.  Reason may be either overloaded
+server or just too small of a \fBpool_size\fP setting.
+.TP
+.B pool_mode
+The pooling mode in use.
+.UNINDENT
+.SS SHOW LISTS;
+.sp
+Show following internal information, in columns (not rows):
+.INDENT 0.0
+.TP
+.B databases
+Count of databases.
+.TP
+.B users
+Count of users.
+.TP
+.B pools
+Count of pools.
+.TP
+.B free_clients
+Count of free clients.
+.TP
+.B used_clients
+Count of used clients.
+.TP
+.B login_clients
+Count of clients in \fBlogin\fP state.
+.TP
+.B free_servers
+Count of free servers.
+.TP
+.B used_servers
+Count of used servers.
+.UNINDENT
+.SS SHOW USERS;
+.INDENT 0.0
+.TP
+.B name
+The user name
+.TP
+.B pool_mode
+The user\(aqs override pool_mode, or NULL if the default will be used instead.
+.UNINDENT
+.SS SHOW DATABASES;
+.INDENT 0.0
+.TP
+.B name
+Name of configured database entry.
+.TP
+.B host
+Host pgbouncer connects to.
+.TP
+.B port
+Port pgbouncer connects to.
+.TP
+.B database
+Actual database name pgbouncer connects to.
+.TP
+.B force_user
+When user is part of the connection string, the connection between
+pgbouncer and PostgreSQL is forced to the given user, whatever the
+client user.
+.TP
+.B pool_size
+Maximum number of server connections.
+.TP
+.B pool_mode
+The database\(aqs override pool_mode, or NULL if the default will be used instead.
+.UNINDENT
+.SS SHOW FDS;
+.sp
+Internal command \- shows list of fds in use with internal state attached to them.
+.sp
+When the connected user has username "pgbouncer", connects through Unix socket
+and has same UID as running process, the actual fds are passed over the connection.
+This mechanism is used to do an online restart.
+Note: This does not work on Windows machines.
+.sp
+This command also blocks internal event loop, so it should not be used
+while PgBouncer is in use.
+.INDENT 0.0
+.TP
+.B fd
+File descriptor numeric value.
+.TP
+.B task
+One of \fBpooler\fP, \fBclient\fP or \fBserver\fP.
+.TP
+.B user
+User of the connection using the FD.
+.TP
+.B database
+Database of the connection using the FD.
+.TP
+.B addr
+IP address of the connection using the FD, \fBunix\fP if a unix socket
+is used.
+.TP
+.B port
+Port used by the connection using the FD.
+.TP
+.B cancel
+Cancel key for this connection.
+.TP
+.B link
+fd for corresponding server/client.  NULL if idle.
+.UNINDENT
+.SS SHOW CONFIG;
+.sp
+Show the current configuration settings, one per row, with following
+columns:
+.INDENT 0.0
+.TP
+.B key
+Configuration variable name
+.TP
+.B value
+Configuration value
+.TP
+.B changeable
+Either \fByes\fP or \fBno\fP, shows if the variable can be changed while running.
+If \fBno\fP, the variable can be changed only boot\-time.
+.UNINDENT
+.SS SHOW DNS_HOSTS;
+.sp
+Show hostnames in DNS cache.
+.INDENT 0.0
+.TP
+.B hostname
+Host name.
+.TP
+.B ttl
+How meny seconds until next lookup.
+.TP
+.B addrs
+Comma separated list of addresses.
+.UNINDENT
+.SS SHOW DNS_ZONES
+.sp
+Show DNS zones in cache.
+.INDENT 0.0
+.TP
+.B zonename
+Zone name.
+.TP
+.B serial
+Current serial.
+.TP
+.B count
+Hostnames belonging to this zone.
+.UNINDENT
+.SS Process controlling commands
+.SS PAUSE [db];
+.sp
+PgBouncer tries to disconnect from all servers, first waiting for all queries
+to complete. The command will not return before all queries are finished.  To be used
+at the time of database restart.
+.sp
+If database name is given, only that database will be paused.
+.SS DISABLE db;
+.sp
+Reject all new client connections on the given database.
+.SS ENABLE db;
+.sp
+Allow new client connections after a previous \fBDISABLE\fP command.
+.SS KILL db;
+.sp
+Immediately drop all client and server connections on given database.
+.SS SUSPEND;
+.sp
+All socket buffers are flushed and PgBouncer stops listening for data on them.
+The command will not return before all buffers are empty.  To be used at the time
+of PgBouncer online reboot.
+.SS RESUME [db];
+.sp
+Resume work from previous \fBPAUSE\fP or \fBSUSPEND\fP command.
+.SS SHUTDOWN;
+.sp
+The PgBouncer process will exit.
+.SS RELOAD;
+.sp
+The PgBouncer process will reload its configuration file and update
+changeable settings.
+.SS Signals
+.INDENT 0.0
+.TP
+.B SIGHUP
+Reload config. Same as issuing command \fBRELOAD;\fP on console.
+.TP
+.B SIGINT
+Safe shutdown. Same as issuing \fBPAUSE;\fP and \fBSHUTDOWN;\fP on console.
+.TP
+.B SIGTERM
+Immediate shutdown.  Same as issuing \fBSHUTDOWN;\fP on console.
+.UNINDENT
+.SS Libevent settings
+.sp
+From libevent docs:
+.sp
+.nf
+.ft C
+It is possible to disable support for epoll, kqueue, devpoll, poll
+or select by setting the environment variable EVENT_NOEPOLL,
+EVENT_NOKQUEUE, EVENT_NODEVPOLL, EVENT_NOPOLL or EVENT_NOSELECT,
+respectively.
+
+By setting the environment variable EVENT_SHOW_METHOD, libevent
+displays the kernel notification method that it uses.
+.ft P
+.fi
+.SH SEE ALSO
+.sp
+pgbouncer(5) \- manpage of configuration settings descriptions.
+.sp
+\fI\%https://pgbouncer.github.io/\fP
+.sp
+\fI\%https://wiki.postgresql.org/wiki/PgBouncer\fP
+.\" Generated by docutils manpage writer.
+.\" 
+.
