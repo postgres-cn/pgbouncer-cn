@@ -2,7 +2,7 @@
 pgbouncer
 #########
 
-Synopsis
+概要
 ========
 
 ::
@@ -10,57 +10,49 @@ Synopsis
   pgbouncer [-d][-R][-v][-u user] <pgbouncer.ini>
   pgbouncer -V|-h
 
-On Windows computers, the options are::
+在Windows计算机上，选项有:
 
   pgbouncer.exe [-v][-u user] <pgbouncer.ini>
   pgbouncer.exe -V|-h
 
-Additional options for setting up a Windows service::
+设置Windows服务的其他选项::
 
   pgbouncer.exe --regservice   <pgbouncer.ini>
   pgbouncer.exe --unregservice <pgbouncer.ini>
 
-DESCRIPTION
+描述
 ===========
 
-**pgbouncer** is a PostgreSQL connection pooler. Any target application
-can be connected to **pgbouncer** as if it were a PostgreSQL server,
-and **pgbouncer** will create a connection to the actual server, or it
-will reuse one of its existing connections.
+**pgbouncer**是一个PostgreSQL连接池。
+任何目标应用程序都可以连接到**pgbouncer**，
+就像它是PostgreSQL服务器一样，**pgbouncer**将创建到实际服务器的连接，
+或者它将重用其中一个现有的连接。
 
-The aim of **pgbouncer** is to lower the performance impact of opening
-new connections to PostgreSQL.
+**pgbouncer**的目的是为了降低打开PostgreSQL新连接时的性能影响。
 
-In order not to compromise transaction semantics for connection
-pooling, **pgbouncer** supports several types of pooling when
-rotating connections:
+为了不影响连接池的事务语义，**pgbouncer**在切换连接时支持多种类型的池：
 
-Session pooling
-    Most polite method. When client connects, a server connection will
-    be assigned to it for the whole duration the client stays connected. When
-    the client disconnects, the server connection will be put back into the pool.
-    This is the default method.
+会话连接池
+    最礼貌的方法。当客户端连接时，将在客户端保持连接的整个持续时间内分配一个服务器连接。
+    当客户端断开连接时，服务器连接将放回到连接池中。这是默认的方法。
 
-Transaction pooling
-    A server connection is assigned to client only during a transaction.
-    When PgBouncer notices that transaction is over, the server connection
-    will be put back into the pool.
+事务连接池
+    服务器连接只有在一个事务里的时候才赋予客户端。
+    在PgBouncer注意到事务结束的时候，服务器连接将会放回连接池中。
 
-Statement pooling
-    Most aggressive method. The server connection will be put back into
-    pool immediately after a query completes. Multi-statement
-    transactions are disallowed in this mode as they would break.
+语句连接池
+    最激进的模式。在查询完成后，服务器连接将立即被放回连接池中。
+    这个模式中不允许多语句的事务，因为它们会中断。
 
-The administration interface of **pgbouncer** consists of some new
-``SHOW`` commands available when connected to a special 'virtual'
-database **pgbouncer**.
+**pgbouncer**的管理界面由连接到特殊‘虚拟’数据库**pgbouncer**时可用的一些新的
+``SHOW``命令组成。
 
-Quick-start
+快速开始
 ===========
 
-Basic setup and usage as following.
+基本设置和用法如下。
 
-1. Create a pgbouncer.ini file.  Details in **pgbouncer(5)**.  Simple example::
+1. 创建一个pgbouncer.ini文件。**pgbouncer(5)**的详细信息。简单例子::
 
     [databases]
     template1 = host=127.0.0.1 port=5432 dbname=template1
@@ -74,21 +66,21 @@ Basic setup and usage as following.
     pidfile = pgbouncer.pid
     admin_users = someuser
 
-2. Create ``users.txt`` file that contains users allowed in::
+2. 创建包含用户准入的``users.txt``文件::
 
     "someuser" "same_password_as_in_server"
 
-3. Launch **pgbouncer**::
+3. 加载**pgbouncer**::
 
      $ pgbouncer -d pgbouncer.ini
 
-4. Have your application (or the **psql** client) connect to
-   **pgbouncer** instead of directly to PostgreSQL server::
+4. 你的应用程序（或**客户端psql**）已经连接到**pgbouncer**
+而不是直接连接到PostgreSQL服务器了吗：
 
     $ psql -p 6543 -U someuser template1
 
-5. Manage **pgbouncer** by connecting to the special administration
-   database **pgbouncer** and issuing ``show help;`` to begin::
+5. 通过连接到特殊管理员数据库**pgbouncer**管理**pgbouncer**，
+发出``show help;``开始：
 
       $ psql -p 6543 -U someuser pgbouncer
       pgbouncer=# show help;
@@ -102,465 +94,445 @@ Basic setup and usage as following.
         RESUME
         SHUTDOWN
 
-6. If you made changes to the pgbouncer.ini file, you can reload it with::
+6. 如果你修改了pgbouncer.ini文件，可以用下列命令重新加载：
 
       pgbouncer=# RELOAD;
 
-Command line switches
+命令行开关
 =====================
 
 -d
-    Run in background. Without it the process will run in foreground.
-    Note: Does not work on Windows, **pgbouncer** need to run as service there.
+    在后台运行。没有它，进程将在前台运行。
+    注意：在Windows上不起作用，**pgbouncer**需要作为服务运行。
 
 -R
-    Do an online restart. That means connecting to the running process,
-    loading the open sockets from it, and then using them.  If there
-    is no active process, boot normally.
-    Note: Works only if OS supports Unix sockets and the `unix_socket_dir`
-    is not disabled in config.  Does not work on Windows machines.
-    Does not work with TLS connections, they are dropped.
+    进行在线重启。这意味着连接到正在运行的进程，从中加载打开的套接字，
+    然后使用它们。如果没有活动进程，请正常启动。
+    注意：只有在操作系统支持Unix套接字且“unix_socket_dir”
+    在配置中未被禁用时才可用。在Windows机器上不起作用。
+    不使用TLS连接，它们被删除了。
 
 -u user
-    Switch to the given user on startup.
+    启动时切换到给定的用户。
 
 -v
-    Increase verbosity.  Can be used multiple times.
+    增加详细度。可多次使用。
 
 -q
-    Be quiet - do not log to stdout.  Note this does not affect
-    logging verbosity, only that stdout is not to be used.
-    For use in init.d scripts.
+    安静 - 不要登出到stdout。请注意，
+    这不影响日志详细程度，只有该stdout不被使用。用于init.d脚本。
 
 -V
-    Show version.
+    显示版本。
 
 -h
-    Show short help.
+    显示简短的帮助。
 
 --regservice
-    Win32: Register pgbouncer to run as Windows service.  The **service_name**
-    config parameter value is used as name to register under.
+    Win32：注册pgbouncer作为Windows服务运行。 **service_name**
+    配置参数值用作要注册的名称。
 
 --unregservice
-    Win32: Unregister Windows service.
+    Win32: 注销Windows服务。
 
-Admin console
+管理控制台
 =============
 
-The console is available by connecting as normal to the
-database **pgbouncer**::
+通过正常连接到数据库**pgbouncer**可以使用控制台::
 
   $ psql -p 6543 pgbouncer
 
-Only users listed in configuration parameters **admin_users** or **stats_users**
-are allowed to login to the console.  (Except when `auth_mode=any`, then
-any user is allowed in as a stats_user.)
+只有在配置参数**admin_users**或**stats_users**中列出的用户才允许登录到控制台。
+（除了`auth_mode=any`时，任何用户都可以作为stats_user登录。）
 
-Additionally, the username **pgbouncer** is allowed to log in without password,
-if the login comes via Unix socket and the client has same Unix user uid
-as the running process.
+另外，如果通过Unix套接字登录，并且客户端具有与运行进程相同的Unix用户uid，
+允许用户名**pgbouncer**不使用密码登录，
 
-Show commands
+显示命令
 ~~~~~~~~~~~~~
 
-The **SHOW** commands output information. Each command is described below.
+**SHOW**命令输出信息。在下面描述每个命令。
 
 SHOW STATS;
 -----------
 
-Shows statistics.
+显示统计信息。
 
 database
-    Statistics are presented per database.
+    为每个数据库提供统计信息。
 
 total_requests
-    Total number of SQL requests pooled by **pgbouncer**.
+    由**pgbouncer**汇总的SQL请求总数。
 
 total_received
-    Total volume in bytes of network traffic received by **pgbouncer**.
+    **pgbouncer**收到的网络流量总字节数。
 
 total_sent
-    Total volume in bytes of network traffic sent by **pgbouncer**.
+    **pgbouncer**发送的网络流量总字节数。
 
 total_query_time
-    Total number of microseconds spent by **pgbouncer** when actively
-    connected to PostgreSQL.
+    当主动连接到PostgreSQL时**pgbouncer**花费的微秒数。
 
 avg_req
-    Average requests per second in last stat period.
+    上次统计期间每秒平均请求数。
 
 avg_recv
-    Average received (from clients) bytes per second.
+    每秒平均接收（从客户端）字节。
 
 avg_sent
-    Average sent (to clients) bytes per second.
+    每秒平均发送（到客户端）字节。
 
 avg_query
-    Average query duration in microseconds.
+    平均查询持续时间（以微秒为单位）。
 
 SHOW SERVERS;
 -------------
 
 type
-    S, for server.
+    S，用于服务器。
 
 user
-    Username **pgbouncer** uses to connect to server.
+    **pgbouncer**用于连接到服务器的用户名。 
 
 database
-    Database name.
+    数据库名。
 
 state
-    State of the pgbouncer server connection, one of **active**, **used** or
-    **idle**.
+    pgbouncer服务器连接的状态，**active**、**used**或
+    **idle**之一。
 
 addr
-  IP address of PostgreSQL server.
+  PostgreSQL server服务器的IP地址。
 
 port
-    Port of PostgreSQL server.
+    PostgreSQL服务器的端口。
 
 local_addr
-    Connection start address on local machine.
+    本机连接启动的地址。
 
 local_port
-    Connection start port on local machine.
+    本机上的连接启动端口。
 
 connect_time
-    When the connection was made.
+    建立连接的时间。
 
 request_time
-    When last request was issued.
+    最后一个请求发出的时间。
 
 ptr
-    Address of internal object for this connection.
-    Used as unique ID.
+    此连接的内部对象的地址。用作唯一ID。
 
 link
-    Address of client connection the server is paired with.
+    服务器配对的客户端连接地址。
 
 remote_pid
-    Pid of backend server process.  In case connection is made over
-    unix socket and OS supports getting process ID info, it's
-    OS pid.  Otherwise it's extracted from cancel packet server sent,
-    which should be PID in case server is Postgres, but it's a random
-    number in case server it another PgBouncer.
+    后端服务器进程的pid。如果通过unix套接字进行连接，
+    并且OS支持获取进程ID信息，则为OS pid。
+    否则它将从服务器发送的取消数据包中提取出来，如果服务器是Postgres，
+    则应该是PID，但是如果服务器是另一个PgBouncer，则它是一个随机数。
 
 SHOW CLIENTS;
 -------------
 
 type
-    C, for client.
+    C，用于客户端。
 
 user
-    Client connected user.
+    客户端连接用户。
 
 database
-    Database name.
+    数据库名称。
 
 state
-    State of the client connection, one of **active**, **used**, **waiting**
-    or **idle**.
+    客户端连接的状态，**active**、**used**、**waiting**
+    或**idle**之一。
 
 addr
-    IP address of client.
+    客户端的IP地址。
 
 port
-    Port client is connected to.
+    客户端连接到的端口。
 
 local_addr
-    Connection end address on local machine.
+    本机上的连接结束地址。
 
 local_port
-    Connection end port on local machine.
+    本机上的连接结束端口。
 
 connect_time
-    Timestamp of connect time.
+    连接时的时间戳。
 
 request_time
-    Timestamp of latest client request.
+    最近一次客户端请求的时间戳。
 
 ptr
-    Address of internal object for this connection.
-    Used as unique ID.
+    此连接的内部对象的地址。用作唯一ID。
 
 link
-    Address of server connection the client is paired with.
+    客户端配对的服务器连接地址。
 
 remote_pid
-    Process ID, in case client connects over UNIX socket
-    and OS supports getting it.
+    进程ID，在客户端通过UNIX套接字连接并且OS支持获取它的情况下。
 
 SHOW POOLS;
 -----------
 
-A new pool entry is made for each couple of (database, user).
+为每对(database, user)创建一个新的连接池选项。
 
 database
-    Database name.
+    数据库名称。
 
 user
-    User name.
+    用户名。
 
 cl_active
-    Client connections that are linked to server connection and can process queries.
+    链接到服务器连接并可以处理查询的客户端连接。
 
 cl_waiting
-    Client connections have sent queries but have not yet got a server connection.
+    已发送查询但尚未获得服务器连接的客户端连接。
 
 sv_active
-    Server connections that linked to client.
+    链接到客户端的服务器连接。
 
 sv_idle
-    Server connections that unused and immediately usable for client queries.
+    未使用且可立即用于客户机查询的服务器连接。
 
 sv_used
-    Server connections that have been idle more than `server_check_delay`,
-    so they needs `server_check_query` to run on it before it can be used.
+    已经闲置超过`server_check_delay`时长的服务器连接，
+    所以在它可以使用之前，需要运行`server_check_query`。
 
 sv_tested
-    Server connections that are currently running either `server_reset_query`
-    or `server_check_query`.
+    当前正在运行`server_reset_query`或`server_check_query`的服务器连接。
 
 sv_login
-    Server connections currently in logging in process.
+    当前正在登录过程中的服务器连接。
 
 maxwait
-    How long the first (oldest) client in queue has waited, in seconds.
-    If this starts increasing, then the current pool of servers does
-    not handle requests quick enough.  Reason may be either overloaded
-    server or just too small of a **pool_size** setting.
+    队列中第一个（最老的）客户端已经等待了多长时间，以秒计。
+    如果它开始增加，那么服务器当前的连接池处理请求的速度不够快。
+    原因可能是服务器负载过重或**pool_size**设置过小。
 
 pool_mode
-    The pooling mode in use.
+    正在使用的连接池模式。
 
 SHOW LISTS;
 -----------
 
-Show following internal information, in columns (not rows):
+在列（不是行）中显示以下内部信息：
 
 databases
-    Count of databases.
+    数据库计数。
 
 users
-    Count of users.
+    用户计数。
 
 pools
-    Count of pools.
+    连接池计数。
 
 free_clients
-    Count of free clients.
+    空闲客户端计数。
 
 used_clients
-    Count of used clients.
+    使用了的客户端计数。
 
 login_clients
-    Count of clients in **login** state.
+    在**login**状态中的客户端计数。
 
 free_servers
-    Count of free servers.
+    空闲服务器计数。
 
 used_servers
-    Count of used servers.
+    使用了的服务器计数。
 
 SHOW USERS;
 -----------
 
 name
-    The user name
+    用户名
 
 pool_mode
-    The user's override pool_mode, or NULL if the default will be used instead.
+    用户重写的pool_mode，如果使用默认值，则返回NULL。
 
 SHOW DATABASES;
 ---------------
 
 name
-    Name of configured database entry.
+    配置的数据库项的名称。
 
 host
-    Host pgbouncer connects to.
+    pgbouncer连接到的主机。
 
 port
-    Port pgbouncer connects to.
+    pgbouncer连接到的端口。
 
 database
-    Actual database name pgbouncer connects to.
+    pgbouncer连接到的实际数据库名称。
 
 force_user
-    When user is part of the connection string, the connection between
-    pgbouncer and PostgreSQL is forced to the given user, whatever the
-    client user.
+    当用户是连接字符串的一部分时，pgbouncer和PostgreSQL
+    之间的连接被强制给给定的用户，不管客户端用户是谁。
 
 pool_size
-    Maximum number of server connections.
+    服务器连接的最大数量。
 
 pool_mode
-    The database's override pool_mode, or NULL if the default will be used instead.
+    数据库的重写pool_mode，如果使用默认值则返回NULL。
 
 SHOW FDS;
 ---------
 
-Internal command - shows list of fds in use with internal state attached to them.
+内部命令 - 显示与附带的内部状态一起使用的fds列表。
 
-When the connected user has username "pgbouncer", connects through Unix socket
-and has same UID as running process, the actual fds are passed over the connection.
-This mechanism is used to do an online restart.
-Note: This does not work on Windows machines.
+当连接的用户使用用户名"pgbouncer"时，
+通过Unix套接字连接并具有与运行过程相同的UID，实际的fds通过连接传递。
+该机制用于进行在线重启。
+注意：这不适用于Windows机器。
 
-This command also blocks internal event loop, so it should not be used
-while PgBouncer is in use.
+此命令还会阻止内部事件循环，因此在使用PgBouncer时不应该使用它。
 
 fd
-    File descriptor numeric value.
+    文件描述符数值。
 
 task
-    One of **pooler**, **client** or **server**.
+    **pooler**、**client**或**server**之一。
 
 user
-    User of the connection using the FD.
+    使用该FD的连接的用户。
 
 database
-    Database of the connection using the FD.
+    使用该FD的连接的数据库。
 
 addr
-    IP address of the connection using the FD, **unix** if a unix socket
-    is used.
+    使用FD的连接的IP地址，如果使用unix套接字则是**unix**。
 
 port
-    Port used by the connection using the FD.
+    使用FD的连接的端口。
 
 cancel
-    Cancel key for this connection.
+    取消此连接的键。
 
 link
-    fd for corresponding server/client.  NULL if idle.
+    对应服务器/客户端的fd。如果空闲则为NULL。
 
 SHOW CONFIG;
 ------------
 
-Show the current configuration settings, one per row, with following
-columns:
+显示当前的配置设置，一行一个，带有下列字段：
 
 key
-    Configuration variable name
+    配置变量名
 
 value
-    Configuration value
+    配置值
 
 changeable
-    Either **yes** or **no**, shows if the variable can be changed while running.
-    If **no**, the variable can be changed only boot-time.
+    **yes**或者**no**，显示运行时变量是否可更改。
+    如果是**no**，则该变量只能在启动时改变。
 
 SHOW DNS_HOSTS;
 ---------------
 
-Show hostnames in DNS cache.
+显示DNS缓存中的主机名。
 
 hostname
-    Host name.
+    主机名。
 
 ttl
-    How meny seconds until next lookup.
+    直到下一次查找经过了多少秒。
 
 addrs
-    Comma separated list of addresses.
+    地址的逗号分隔的列表。
 
 SHOW DNS_ZONES
 --------------
 
-Show DNS zones in cache.
+显示缓存中的DNS区域。
 
 zonename
-    Zone name.
+    区域名称。
 
 serial
-    Current serial.
+    当前序列号。
 
 count
-    Hostnames belonging to this zone.
+    
+    属于此区域的主机名。
 
 
-Process controlling commands
+过程控制命令
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 PAUSE [db];
 -----------
 
-PgBouncer tries to disconnect from all servers, first waiting for all queries
-to complete. The command will not return before all queries are finished.  To be used
-at the time of database restart.
+PgBouncer尝试断开所有服务器的连接，首先等待所有查询完成。
+所有查询完成之前，命令不会返回。在数据库重新启动时使用。
 
-If database name is given, only that database will be paused.
+如果提供了数据库名称，那么只有该数据库将被暂停。
 
 DISABLE db;
 -----------
 
-Reject all new client connections on the given database.
+拒绝给定数据库上的所有新客户端连接。
 
 ENABLE db;
 ----------
 
-Allow new client connections after a previous **DISABLE** command.
+在上一个的**DISABLE**命令之后允许新的客户端连接。
 
 KILL db;
 --------
 
-Immediately drop all client and server connections on given database.
+立即删除给定数据库上的所有客户端和服务器连接。
 
 SUSPEND;
 --------
 
-All socket buffers are flushed and PgBouncer stops listening for data on them.
-The command will not return before all buffers are empty.  To be used at the time
-of PgBouncer online reboot.
+所有套接字缓冲区被刷新，PgBouncer停止监听它们上的数据。
+在所有缓冲区为空之前，命令不会返回。在PgBouncer在线重新启动时使用。
 
 RESUME [db];
 ------------
 
-Resume work from previous **PAUSE** or **SUSPEND** command.
+从之前的**PAUSE**或**SUSPEND**命令中恢复工作。
 
 SHUTDOWN;
 ---------
 
-The PgBouncer process will exit.
+PgBouncer进程将会退出。
 
 RELOAD;
 -------
 
-The PgBouncer process will reload its configuration file and update
-changeable settings.
+PgBouncer进程将重新加载它的配置文件并更新可改变的设置。
 
-Signals
+信号
 ~~~~~~~
 
 SIGHUP
-    Reload config. Same as issuing command **RELOAD;** on console.
+    重新加载配置。与在控制台上发出命令**RELOAD;**相同。
 
 SIGINT
-    Safe shutdown. Same as issuing **PAUSE;** and **SHUTDOWN;** on console.
+    安全关闭。与在控制台上发出**PAUSE;**和**SHUTDOWN;**相同。
 
 SIGTERM
-    Immediate shutdown.  Same as issuing **SHUTDOWN;** on console.
+    立即关闭。与在控制台上发出**SHUTDOWN;**相同。
 
-Libevent settings
+Libevent设置
 ~~~~~~~~~~~~~~~~~
 
-From libevent docs::
+来自libevent的文档::
 
-  It is possible to disable support for epoll, kqueue, devpoll, poll
-  or select by setting the environment variable EVENT_NOEPOLL,
-  EVENT_NOKQUEUE, EVENT_NODEVPOLL, EVENT_NOPOLL or EVENT_NOSELECT,
-  respectively.
+  可以通过分别设置环境变量EVENT_NOEPOLL、EVENT_NOKQUEUE、
+  VENT_NODEVPOLL、EVENT_NOPOLL或EVENT_NOSELECT来禁用对
+  epoll、kqueue、devpoll、poll或select的支持。
 
-  By setting the environment variable EVENT_SHOW_METHOD, libevent
-  displays the kernel notification method that it uses.
+  通过设置环境变量EVENT_SHOW_METHOD，libevent显示它使用的内核通知方法。
 
-See also
+又见
 ========
 
-pgbouncer(5) - manpage of configuration settings descriptions.
+pgbouncer(5) - 配置设置描述的手册页
 
 https://pgbouncer.github.io/
 

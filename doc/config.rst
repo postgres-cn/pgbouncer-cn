@@ -2,978 +2,919 @@
 pgbouncer.ini
 #############
 
-Description
+描述
 ===========
 
-Config file is in "ini" format. Section names are between "[" and "]".  Lines
-starting with ";" or "#" are taken as comments and ignored. The characters ";"
-and "#" are not recognized when they appear later in the line.
+配置文件采用"ini"格式。章节名称介于"["和"]"之间。以";"或"#"
+开头的行是注释并且忽略。字符";"和"#"在注释行中稍后出现时不被识别。
 
 
-Generic settings
+通用设置
 ================
 
 logfile
 -------
 
-Specifies log file. Log file is kept open so after rotation ``kill -HUP``
-or on console ``RELOAD;`` should be done.
-Note: On Windows machines, the service must be stopped and started.
+指定日志文件。日志文件是保持打开的，所以重启``kill -HUP``之后
+或控制台上``RELOAD;``应该完成。
+注意：在Windows机器上，服务必须停止并启动。
 
-Default: not set.
+默认：没有设置。
 
 pidfile
 -------
 
-Specifies the pid file. Without a pidfile, daemonization is not allowed.
+指定pid文件。没有pidfile，不允许守护进程。
 
-Default: not set.
+默认：没有设置。
 
 listen_addr
 -----------
 
-Specifies list of addresses, where to listen for TCP connections.
-You may also use ``*`` meaning "listen on all addresses". When not set,
-only Unix socket connections are allowed.
+指定地址列表，表明在哪里监听TCP连接。
+你还可以使用``*``表示“监听所有地址”。没有设置时，
+只允许Unix套接字连接。
 
-Addresses can be specified numerically (IPv4/IPv6) or by name.
+可以用数字(IPv4/IPv6)或名称指定地址。
 
-Default: not set
+默认：没有设置。
 
 listen_port
 -----------
 
-Which port to listen on. Applies to both TCP and Unix sockets.
+监听哪个端口。应用到TCP和Unix套接字。
 
-Default: 6432
+默认: 6432
 
 unix_socket_dir
 ---------------
 
-Specifies location for Unix sockets. Applies to both listening socket and
-server connections. If set to an empty string, Unix sockets are disabled.
-Required for online reboot (-R) to work.
-Note: Not supported on Windows machines.
+指定Unix套接字的位置。应用到监听套接字和服务器配置。
+如果设置为一个空的字符串，则禁用Unix套接字。
+需要在线重新启动(-R)才能工作。
+注意：Windows机器不支持。
 
-Default: /tmp
+默认: /tmp
 
 unix_socket_mode
 ----------------
 
-Filesystem mode for unix socket.
+unix套接字的文件系统模式。
 
-Default: 0777
+默认: 0777
 
 unix_socket_group
 -----------------
 
-Group name to use for unix socket.
+用于unix套接字的组名。
 
-Default: not set
+默认：没有设置
 
 user
 ----
 
-If set, specifies the Unix user to change to after startup. Works only if
-PgBouncer is started as root or if it's already running as given user.
+如果设置了，则指定启动后要切换到的Unix用户。只有在
+PgBouncer以root身份启动，或者已经以给定的用户身份运行时才能工作。
 
-Note: Not supported on Windows machines.
+注意：Windows机器不支持。
 
-Default: not set
+默认：没有设置
 
 auth_file
 ---------
 
-The name of the file to load user names and passwords from. The file format
-is the same as the PostgreSQL 8.x pg_auth/pg_pwd file, so this setting can be
-pointed directly to one of those backend files.  Since version 9.0, PostgreSQL
-does not use such text file, so it must be generated manually.  See
-section `Authentication file format`_ below about details.
 
-Default: not set.
+从中加载用户名和密码的文件名。文件格式和PostgreSQL 8.x pg_auth/pg_pwd
+文件相同。自版本9.0以来，PostgreSQL不再使用这种文本文件，所以它必须手动生成。
+详见下面的‘认证文件格式’章节。
+
+默认：没有设置。
 
 
 auth_hba_file
 -------------
 
-HBA configuration file to use when `auth_type`_ is ``hba``.
-Supported from version 1.7 onwards.
+当`auth_type`是``hba``时要使用的HBA配置文件。
+从版本1.7开始支持。
 
-Default: not set
+默认：没有设置。
 
 auth_type
 ---------
 
-How to authenticate users.
+如何验证用户。
 
 hba
-    Actual auth type is loaded from `auth_hba_file`_.  This allows different
-    authentication methods different access paths.  Example: connection
-    over unix socket use ``peer`` auth method, connection over TCP
-    must use TLS. Supported from version 1.7 onwards.
+    实际验证类型是从`auth_hba_file`文件中加载的。这允许不同的验证方式、
+    不同的访问路径。例如：unix套接字上的连接使用``peer``认证类型，
+    TCP上的连接必须使用TLS。从版本1.7开始支持。
 
 cert
-    Client must connect over TLS connection with valid client cert.
-    Username is then taken from CommonName field from certificate.
+    客户端必须通过TLS连接与有效的客户端证书进行连接。
+    然后，用户名从证书中的CommonName字段中取出。
 
 md5
-    Use MD5-based password check. `auth_file`_ may contain both MD5-encrypted
-    or plain-text passwords.  This is the default authentication method.
+    使用基于MD5的密码检查。`auth_file`_可能同时包含MD5加密
+    或纯文本密码。这是默认的身份验证方法。
 
 plain
-    Clear-text password is sent over wire.  Deprecated.
+    明文密码通过线路发送。已过时。
 
 trust
-    No authentication is done. Username must still exist in `auth_file`_.
+    不执行认证。用户名必须仍然存在于`auth_file`_中。
 
 any
-    Like the ``trust`` method, but the username given is ignored. Requires that all
-    databases are configured to log in as specific user.  Additionally, the console
-    database allows any user to log in as admin.
+    类似于``trust``方式，但是不需要用户名。
+    要求将所有数据库配置为以特定用户身份登陆。另外，
+    控制台数据库允许任意用户以管理员身份登陆。
 
 auth_query
 ----------
 
-Query to load user's password from database.
+查询从数据库加载用户密码。
 
-Direct access to pg_shadow requires admin rights.  It's preferable to
-use non-admin user that calls SECURITY DEFINER function instead.
+直接访问pg_shadow需要管理员权限。最好使用非管理员用户调用SECURITY DEFINER功能。
 
-Default: ``SELECT usename, passwd FROM pg_shadow WHERE usename=$1``
+默认: ``SELECT usename, passwd FROM pg_shadow WHERE usename=$1``
 
 pool_mode
 ---------
 
-Specifies when a server connection can be reused by other clients.
+指定服务器连接何时可被其他客户端重用。
 
 session
-    Server is released back to pool after client disconnects.  Default.
+    在客户端断开的时候，服务器连接会放回到连接池中。默认。
 
 transaction
-    Server is released back to pool after transaction finishes.
+    事务结束后，服务器将会放回连接池中。
 
 statement
-    Server is released back to pool after query finishes. Long transactions
-    spanning multiple statements are disallowed in this mode.
+    查询结束后，服务器将会放回连接池中。在这个模式中，
+    不允许多个语句的长事务。
 
 max_client_conn
 ---------------
 
-Maximum number of client connections allowed.  When increased then the file
-descriptor limits should also be increased.  Note that actual number of file
-descriptors used is more than max_client_conn.  Theoretical maximum used is::
+允许的最大客户端连接数量。当增加时，文件描述符限制也应该增加。
+注意实际使用的文件描述符数量是超过max_client_conn的。
+理论上使用的最大值是：
 
   max_client_conn + (max_pool_size * total_databases * total_users)
 
-if each user connects under its own username to server.  If a database user
-is specified in connect string (all users connect under same username),
-the theoretical maximum is::
+如果每个用户以自己的用户名连接到服务器。如果在连接字符串中指定了数据库用户
+（所有用户在同一用户名下连接），理论上的最大值为：
 
   max_client_conn + (max_pool_size * total_databases)
 
-The theoretical maximum should be never reached, unless somebody deliberately
-crafts special load for it.  Still, it means you should set the number of
-file descriptors to a safely high number.
+理论上的最大值应该永远不会达到，除非有人故意制造出特殊的负荷。
+不过，这意味着您应该将文件描述符的数量设置为安全的数字。
 
-Search for ``ulimit`` in your favourite shell man page.
-Note: ``ulimit`` does not apply in a Windows environment.
+在你最喜欢的shell手册页中搜索``ulimit``。
+注意：``ulimit``不适用于Windows环境。
 
-Default: 100
+默认: 100
 
 default_pool_size
 -----------------
 
-How many server connections to allow per user/database pair. Can be overridden in
-the per-database configuration.
+每个用户/数据库对允许多少个服务器连接。可以在每个数据库配置中被覆盖。
 
-Default: 20
+默认: 20
 
 min_pool_size
 -------------
 
-Add more server connections to pool if below this number.
-Improves behaviour when usual load comes suddenly back after period
-of total inactivity.
+如果低于此数字，请添加更多服务器连接到池。
+改进常规负载在完全不活动的时间段之后突然恢复时的行为。
 
-Default: 0 (disabled)
+默认: 0 (禁用)
 
 reserve_pool_size
 -----------------
 
-How many additional connections to allow to a pool. 0 disables.
+池允许有多少额外的连接。0 不允许。
 
-Default: 0 (disabled)
+默认: 0 (禁用)
 
 reserve_pool_timeout
 --------------------
 
-If a client has not been serviced in this many seconds, pgbouncer enables
-use of additional connections from reserve pool.  0 disables.
+如果客户端在这么多秒钟内没有得到维护，pgbouncer就可以使用备用池中的其他连接。0禁用。
 
-Default: 5.0
+默认: 5.0
 
 max_db_connections
 ------------------
 
-Do not allow more than this many connections per-database (regardless of pool - i.e.
-user). It should be noted that when you hit the limit, closing a client connection
-to one pool will not immediately allow a server connection to be established for
-another pool, because the server connection for the first pool is still open.
-Once the server connection closes (due to idle timeout), a new server connection
-will immediately be opened for the waiting pool.
+不允许每个数据库超过这么多个连接（不管池，即用户）。应该注意的是，
+当您达到限制时，关闭客户端到一个池的连接将不会立即允许为另一个池建立服务器连接，
+因为第一个池的服务器连接仍然是打开的。一旦服务器连接关闭（由于空闲超时），
+将立即为等待的池打开新的服务器连接。
 
-Default: unlimited
+默认: 无限制
 
 max_user_connections
 --------------------
 
-Do not allow more than this many connections per-user (regardless of pool - i.e.
-user). It should be noted that when you hit the limit, closing a client connection
-to one pool will not immediately allow a server connection to be established for
-another pool, because the server connection for the first pool is still open.
-Once the server connection closes (due to idle timeout), a new server connection
-will immediately be opened for the waiting pool.
+不允许每个用户超过这么多个连接（不管池，即用户）。应该注意的是，
+当您达到限制时，关闭客户端到一个池的连接将不会立即允许为另一个池建立服务器连接，
+因为第一个池的服务器连接仍然是打开的。一旦服务器连接关闭（由于空闲超时），
+将立即为等待的池打开新的服务器连接。
 
 server_round_robin
 ------------------
 
-By default, pgbouncer reuses server connections in LIFO (last-in, first-out) manner,
-so that few connections get the most load.  This gives best performance if you have
-a single server serving a database.  But if there is TCP round-robin behind a database
-IP, then it is better if pgbouncer also uses connections in that manner, thus
-achieving uniform load.
 
-Default: 0
+默认情况下，pgbouncer以LIFO（后进先出）方式重新使用服务器连接，
+因此几乎没有连接得到最大的负载。如果您有一台服务器提供数据库，
+这将提供最佳性能。但是如果在数据库IP之后有TCP循环，
+那么如果pgbouncer也以这种方式使用连接，那么更好，从而实现均匀的负载。
+
+默认: 0
 
 ignore_startup_parameters
 -------------------------
 
-By default, PgBouncer allows only parameters it can keep track of in startup
-packets - ``client_encoding``, ``datestyle``, ``timezone`` and ``standard_conforming_strings``.
+默认情况下，pgbouncer只允许在启动数据包中可以跟踪的参数——
+``client_encoding``、``datestyle``、``timezone``和``standard_conforming_strings``。
 
-All others parameters will raise an error.  To allow others parameters, they can be
-specified here, so that pgbouncer knows that they are handled by admin and it can ignore them.
+所有其他参数会引发错误。为了允许其他参数，可以在这里指定它们，
+以便pgbouncer知道它们由管理员处理，并且可以忽略它们。
 
-Default: empty
+默认: 空
 
 disable_pqexec
 --------------
 
-Disable Simple Query protocol (PQexec).  Unlike Extended Query protocol, Simple Query
-allows multiple queries in one packet, which allows some classes of SQL-injection
-attacks.  Disabling it can improve security.  Obviously this means only clients that
-exclusively use Extended Query protocol will stay working.
+禁用简单查询协议（PQexec）。与扩展查询协议不同，简单查询允许一个数据包中的多个查询，
+这允许一些类型的SQL注入攻击。禁用它可以提高安全性。
+显然这意味着只有使用扩展查询协议的客户端才能保持工作。
 
-Default: 0
+默认: 0
 
 application_name_add_host
 -------------------------
 
-Add the client host address and port to the application name setting set on connection start.
-This helps in identifying the source of bad queries etc.  This logic applies
-only on start of connection, if application_name is later changed with SET,
-pgbouncer does not change it again.
+将客户端主机地址和端口添加到连接启动上设置的应用程序名称设置。
+这有助于识别错误查询的来源等。此逻辑仅适用于连接开始，
+如果以后用SET更改application_name，pgbouncer不会再次更改。
 
-Default: 0
+默认: 0
 
 conffile
 --------
 
-Show location of current config file.  Changing it will make PgBouncer use another
-config file for next ``RELOAD`` / ``SIGHUP``.
+显示当前配置文件的位置。改变它将使PgBouncer为下一个
+``RELOAD`` / ``SIGHUP``使用另一个配置文件。
 
-Default: file from command line.
+默认: 来自命令行的文件。
 
 service_name
 ------------
 
-Used on win32 service registration.
+用于win32服务注册。
 
-Default: pgbouncer
+默认: pgbouncer
 
 job_name
 --------
 
-Alias for `service_name`_.
+`service_name`_的别名。
 
 
-Log settings
+日志设置
 ============
 
 syslog
 ------
 
-Toggles syslog on/off
-As for windows environment, eventlog is used instead.
+切换syslog on/off
+对于windows环境，使用eventlog。
 
-Default: 0
+默认: 0
 
 syslog_ident
 ------------
 
-Under what name to send logs to syslog.
+以什么名称将日志发送到syslog。
 
-Default: pgbouncer (program name)
+默认: pgbouncer (程序名)
 
 syslog_facility
 ---------------
 
-Under what facility to send logs to syslog.
-Possibilities: ``auth``, ``authpriv``, ``daemon``, ``user``, ``local0-7``.
+在什么工具上发送日志到syslog。
+可能性: ``auth``、``authpriv``、``daemon``、``user``、``local0-7``.
 
-Default: daemon
+默认: daemon
 
 log_connections
 ---------------
 
-Log successful logins.
+日志成功登陆。
 
-Default: 1
+默认: 1
 
 log_disconnections
 ------------------
 
-Log disconnections with reasons.
+日志断开与原因。
 
-Default: 1
+默认: 1
 
 log_pooler_errors
 -----------------
 
-Log error messages pooler sends to clients.
+日志错误消息池发送给客户端。
 
-Default: 1
+默认: 1
 
 stats_period
 ------------
 
-Period for writing aggregated stats into log.
+将聚合统计信息写入日志的时间段。
 
-Default: 60
+默认: 60
 
-verbose
+详细
 -------
 
-Increase verbosity.  Mirrors "-v" switch on command line.
-Using "-v -v" on command line is same as `verbose=2` in config.
+增加冗长度。"-v"打开命令行。
+在命令行上使用"-v -v"等同于在配置中设置`verbose=2`。
 
-Default: 0
+默认: 0
 
 
-Console access control
+控制台访问控制
 ======================
 
 admin_users
 -----------
 
-Comma-separated list of database users that are allowed to connect and
-run all commands on console.  Ignored when `auth_type`_ is ``any``,
-in which case any username is allowed in as admin.
+允许逗号分隔的数据库用户列表在控制台上连接并运行所有命令。
+当`auth_type`_ 是``any``时忽略，这种情况下允许任何用户作为管理员登陆。
 
-Default: empty
+默认: 空
 
 stats_users
 -----------
 
-Comma-separated list of database users that are allowed to connect and
-run read-only queries on console. Thats means all SHOW commands except
-SHOW FDS.
+允许逗号分隔的数据库用户列表在控制台上连接并运行只读查询。
+这表示所有除SHOW FDS之外的SHOW命令。
 
-Default: empty.
+默认: 空
 
 
-Connection sanity checks, timeouts
+连接健全检查，超时
 ==================================
 
 server_reset_query
 ------------------
 
-Query sent to server on connection release, before making it
-available to other clients.  At that moment no transaction is in
-progress so it should not include ``ABORT`` or ``ROLLBACK``.
+在向其他客户端提供查询之前，发送到服务器的连接发布。在那一刻，
+没有任何事务正在进行中，因此它不应该包含``ABORT``或``ROLLBACK``。
 
-The query is supposed to clean any changes made to database session
-so that next client gets connection in well-defined state.  Default is
-``DISCARD ALL`` which cleans everything, but that leaves next client
-no pre-cached state.  It can be made lighter, eg ``DEALLOCATE ALL``
-to just drop prepared statements, if application does not break when
-some state is kept around.
+该查询应该清除对数据库会话所做的任何更改，
+以便下一个客户端以良好定义的状态获取连接。默认是``DISCARD ALL``，
+它清除所有内容，但这会使下一个客户端没有预缓存状态。
+如果应用程序在一些状态被保留时不会中断，它可以做得更轻，
+例如``DEALLOCATE ALL``只是删除准备好的语句。
 
-When transaction pooling is used, the `server_reset_query`_ is not used,
-as clients must not use any session-based features as each transaction
-ends up in different connection and thus gets different session state.
+当使用事务池时，不使用`server_reset_query`_，
+因为客户端必须不能使用任何基于会话的功能，因为每个事务都以不同的连接结束，
+并且因此获得不同的会话状态。
 
-Default: DISCARD ALL
+默认: DISCARD ALL
 
 server_reset_query_always
 -------------------------
 
-Whether `server_reset_query`_ should be run in all pooling modes.  When this
-setting is off (default), the `server_reset_query`_ will be run only in pools
-that are in sessions-pooling mode.  Connections in transaction-pooling mode
-should not have any need for reset query.
+`server_reset_query`_是否应该在所有池模式中运行。当此设置为off（默认），
+`server_reset_query`_将只能在会话池模式中运行。事务池模式中的连接不需要重置查询。
 
-It is workaround for broken setups that run apps that use session features
-over transaction-pooled pgbouncer.  Is changes non-deterministic breakage
-to deterministic breakage - client always lose their state after each
-transaction.
+这是破坏在事务池pgbouncer上使用会话功能运行应用程序设置的解决办法。
+将非确定性破坏变为确定性破坏 - 每次事务之后，客户端总是丢失自己的状态。
 
-Default: 0
+默认: 0
 
 server_check_delay
 ------------------
 
-How long to keep released connections available for immediate re-use, without running
-sanity-check queries on it. If 0 then the query is ran always.
+保持释放的连接可以立即重新使用的时间，而无需对其进行健全检查查询。
+如果0，则总是运行查询。
 
-Default: 30.0
+默认: 30.0
 
 server_check_query
 ------------------
 
-Simple do-nothing query to check if the server connection is alive.
+简单的什么也不做的查询检查服务器连接是否存在。
 
-If an empty string, then sanity checking is disabled.
+如果是空字符串，那么合理检查被禁用。
 
-Default: SELECT 1;
+默认: SELECT 1;
 
 server_lifetime
 ---------------
 
-The pooler will try to close server connections that have been connected longer
-than this. Setting it to 0 means the connection is to be used only once,
-then closed. [seconds]
+池将尝试关闭连接时间超过此设置的服务器连接。将它设置为0意味着连接只能使用一次，
+然后关闭。[seconds]
 
-Default: 3600.0
+默认: 3600.0
 
 server_idle_timeout
 -------------------
 
-If a server connection has been idle more than this many seconds it will be dropped.
-If 0 then timeout is disabled.  [seconds]
+如果一个服务器连接已经闲置超过这么多秒，那么它将被删除。
+如果是0，那么禁用超时。 [seconds]
 
-Default: 600.0
+默认: 600.0
 
 server_connect_timeout
 ----------------------
 
-If connection and login won't finish in this amount of time, the connection
-will be closed. [seconds]
+如果连接和登陆不能在这些时间内完成，那么连接将被关闭。 [seconds]
 
-Default: 15.0
+默认: 15.0
 
 server_login_retry
 ------------------
 
-If login failed, because of failure from connect() or authentication that
-pooler waits this much before retrying to connect. [seconds]
+如果登陆失败，因为来自connect()或验证的错误，
+池会在重新尝试连接之前等待这么长时间。[seconds]
 
-Default: 15.0
+默认: 15.0
 
 client_login_timeout
 --------------------
 
-If a client connects but does not manage to login in this amount of time, it
-will be disconnected. Mainly needed to avoid dead connections stalling
-SUSPEND and thus online restart. [seconds]
+如果客户端连接但没有在这些时间之内登录，则会断开连接。
+主要需要避免死连接阻塞SUSPEND，从而在线重新启动。 [seconds]
 
-Default: 60.0
+默认: 60.0
 
 autodb_idle_timeout
 -------------------
 
-If the automatically created (via "*") database pools have
-been unused this many seconds, they are freed.  The negative
-aspect of that is that their statistics are also forgotten.  [seconds]
+如果自动创建的（通过"*"）数据库池已经有这么多秒没有被使用，
+就会被释放。负面影响是它们的统计状态也会被忘记。  [seconds]
 
-Default: 3600.0
+默认: 3600.0
 
 dns_max_ttl
 -----------
 
-How long the DNS lookups can be cached.  If a DNS lookup returns
-several answers, pgbouncer will robin-between them in the meantime.
-Actual DNS TTL is ignored.  [seconds]
+DNS查找可以缓存多长时间。如果一个DNS查询返回几个答案，
+pgbouncer会在这段时间之间进行robin。实际DNS TTL被忽略。[seconds]
 
-Default: 15.0
+默认: 15.0
 
 dns_nxdomain_ttl
 ----------------
 
-How long error and NXDOMAIN DNS lookups can be cached. [seconds]
+错误和NXDOMAIN DNS查找可以缓存多长时间。 [seconds]
 
-Default: 15.0
+默认: 15.0
 
 
 dns_zone_check_period
 ---------------------
 
-Period to check if zone serial has changed.
 
-PgBouncer can collect dns zones from hostnames (everything after first dot)
-and then periodically check if zone serial changes.
-If it notices changes, all hostnames under that zone
-are looked up again.  If any host ip changes, it's connections
-are invalidated.
+检查区域序列是否已更改的期间。
 
-Works only with UDNS backend (``--with-udns`` to configure).
+PgBouncer可以从主机名（第一个点之后的任何地方）收集dns区域，
+然后定期检查区域串行更改。如果注意到更改，
+则该区域下的所有主机名将再次被查找。如果任何主机ip更改，则它的连接无效。
 
-Default: 0.0 (disabled)
+仅适用于UDNS后端 (``--with-udns``来配置)。
+
+默认: 0.0 (禁用)
 
 
-TLS settings
+TLS 设置
 ============
 
 client_tls_sslmode
 ------------------
 
-TLS mode to use for connections from clients.  TLS connections
-are disabled by default.  When enabled, `client_tls_key_file`_
-and `client_tls_cert_file`_ must be also configured to set up
-key and cert PgBouncer uses to accept client connections.
+用于从客户端连接的TLS模式。默认是禁用TLS连接的。当启用时，
+还必须配置`client_tls_key_file`_和`client_tls_cert_file`_ ，
+以配置PgBouncer用于接受客户端连接的密钥和证书。
 
 disable
-    Plain TCP.  If client requests TLS, it's ignored.  Default.
+    纯TCP。如果客户端请求TLS，则会被忽略。默认。
 
 allow
-    If client requests TLS, it is used.  If not, plain TCP is used.
-    If client uses client-certificate, it is not validated.
+    如果客户端请求TLS，则使用它。如果没有，则使用纯TCP。
+    如果客户端使用了客户端证书，则不会验证。
 
 prefer
-    Same as ``allow``.
+    和``allow``相同。
 
 require
-    Client must use TLS.  If not, client connection is rejected.
-    If client uses client-certificate, it is not validated.
+    客户端必须使用TLS。如果不使用，则拒绝客户端连接。
+    如果客户端使用了客户端证书，则不会验证。
 
 verify-ca
-    Client must use TLS with valid client certificate.
+    客户必须使用带有有效客户端证书的TLS。
 
 verify-full
-    Same as ``verify-ca``.
+    和``verify-ca``相同。
 
 client_tls_key_file
 -------------------
 
-Private key for PgBouncer to accept client connections.
+PgBouncer接受客户端连接的私钥。
 
-Default: not set.
+默认: 没有设置。
 
 client_tls_cert_file
 --------------------
 
-Certificate for private key.  Clients can validate it.
+私钥证书。客户端可以验证它。
 
-Default: not set.
+默认: 没有设置。
 
 client_tls_ca_file
 ------------------
 
-Root certificate file to validate client certificates.
+验证客户端证书的根证书文件。
 
-Default: unset.
+默认: 未设置。
 
 client_tls_protocols
 --------------------
 
-Which TLS protocol versions are allowed.  Allowed values: ``tlsv1.0``, ``tlsv1.1``, ``tlsv1.2``.
-Shortcuts: ``all`` (tlsv1.0,tlsv1.1,tlsv1.2), ``secure`` (tlsv1.2), ``legacy`` (all).
+允许哪个TLS协议版本。允许的值：``tlsv1.0``、``tlsv1.1``、``tlsv1.2``。
+缩写: ``all`` (tlsv1.0,tlsv1.1,tlsv1.2)、``secure`` (tlsv1.2)、``legacy`` (所有)。
 
-Default: ``all``
+默认: ``all``
 
 client_tls_ciphers
 ------------------
 
-Default: ``fast``
+默认: ``fast``
 
 client_tls_ecdhcurve
 --------------------
 
-Elliptic Curve name to use for ECDH key exchanges.
+用于ECDH密钥交换的椭圆曲线名称。
 
-Allowed values: ``none`` (DH is disabled), ``auto`` (256-bit ECDH), curve name.
+允许的值: ``none`` (禁用DH)、``auto`` (256位 ECDH)、曲线名称。
 
-Default: ``auto``
+默认: ``auto``
 
 client_tls_dheparams
 --------------------
 
-DHE key exchange type.
+DHE密钥交换类型。
 
-Allowed values: ``none`` (DH is disabled), ``auto`` (2048-bit DH), ``legacy`` (1024-bit DH).
+允许的值: ``none`` (禁用DH)、``auto`` (2048位 DH)、``legacy`` (1024位 DH).
 
-Default: ``auto``
+默认: ``auto``
 
 server_tls_sslmode
 ------------------
 
-TLS mode to use for connections to PostgreSQL servers.
-TLS connections are disabled by default.
+用于连接到PostgreSQL服务器的TLS模式。
+默认禁用TLS连接。
 
 disable
-    Plain TCP.  TCP is not event requested from server.  Default.
+    纯TCP。TCP不是从服务器请求的结果。默认。
 
 allow
-    FIXME: if server rejects plain, try TLS?
+    FIXME: 如果服务器拒绝，尝试TLS?
 
 prefer
-    TLS connection is always requested first from PostgreSQL,
-    when refused connection will be establised over plain TCP.
-    Server certificate is not validated.
+    始终从PostgreSQL首先请求TLS连接，拒绝时连接将通过普通TCP建立。
+    不验证服务器证书。
 
 require
-    Connection must go over TLS.  If server rejects it,
-    plain TCP is not attempted.  Server certificate is not validated.
+    连接必须通过TLS。如果服务器拒绝，则不会尝试使用纯TCP。
+    不验证服务器证书。
 
 verify-ca
-    Connection must go over TLS and server certificate must be valid
-    according to `server_tls_ca_file`_.  Server hostname is not checked
-    against certificate.
+    连接必须通过TLS，并且服务器证书必须根据`server_tls_ca_file`_有效。
+    不根据证书检查服务器主机名。
 
 verify-full
-    Connection must go over TLS and server certificate must be valid
-    according to `server_tls_ca_file`_.  Server hostname must match
-    certificate info.
+    连接必须通过TLS，并且服务器证书必须根据`server_tls_ca_file`_有效。
+    服务器主机名必须匹配证书信息。
 
 server_tls_ca_file
 ------------------
 
-Root certificate file to validate PostgreSQL server certificates.
+验证PostgreSQL服务器证书的根证书文件。
 
-Default: unset.
+默认: 未设置。
 
 server_tls_key_file
 -------------------
 
-Private key for PgBouncer to authenticate against PostgreSQL server.
+PgBouncer用于对PostgreSQL服务器进行身份验证的私钥。
 
-Default: not set.
+默认: 没有设置。
 
 server_tls_cert_file
 --------------------
 
-Certificate for private key.  PostgreSQL server can validate it.
+私钥证书。PostgreSQL服务器可以验证它。
 
-Default: not set.
+默认: 没有设置。
 
 server_tls_protocols
 --------------------
 
-Which TLS protocol versions are allowed.  Allowed values: ``tlsv1.0``, ``tlsv1.1``, ``tlsv1.2``.
-Shortcuts: ``all`` (tlsv1.0,tlsv1.1,tlsv1.2), ``secure`` (tlsv1.2), ``legacy`` (all).
+允许哪个TLS协议版本。允许的值: ``tlsv1.0``、``tlsv1.1``、``tlsv1.2``。
+缩写: ``all`` (tlsv1.0、tlsv1.1、tlsv1.2)、``secure`` (tlsv1.2)、``legacy`` (所有)。
 
-Default: ``all``
+默认: ``all``
 
 server_tls_ciphers
 ------------------
 
-Default: ``fast``
+默认: ``fast``
 
 
-Dangerous timeouts
+危险的超时
 ==================
 
-Setting following timeouts cause unexpected errors.
+设置以下超时会导致意外错误。
 
 query_timeout
 -------------
 
-Queries running longer than that are canceled. This should be used only with
-slightly smaller server-side statement_timeout, to apply only for network
-problems. [seconds]
+运行时间比这长的查询将被取消。只应该用于较小的服务器端statement_timeout，
+才能应用于网络问题。 [seconds]
 
-Default: 0.0 (disabled)
+默认: 0.0 (禁用)
 
 query_wait_timeout
 ------------------
 
-Maximum time queries are allowed to spend waiting for execution. If the query
-is not assigned to a server during that time, the client is disconnected. This
-is used to prevent unresponsive servers from grabbing up connections. [seconds]
+允许查询等待执行花费的最大时间。如果在此期间查询未分配给服务器，
+客户端将断开连接。这用于防止无响应的服务器抓取连接。 [seconds]
 
-It also helps when server is down or database rejects connections for any reason.
-If this is disabled, clients will be queued infinitely.
+当服务器关闭或由于任何原因数据库拒绝连接时它也有帮助。
+如果它被禁用，客户端将无限排队。
 
-Default: 120
+默认: 120
 
 client_idle_timeout
 -------------------
 
-Client connections idling longer than this many seconds are closed. This should
-be larger than the client-side connection lifetime settings, and only used
-for network problems. [seconds]
+闲置超过这么长时间的客户端连接被关闭。这应该大于客户端连接生命周期设置，
+并且仅用于网络问题。 [seconds]
 
-Default: 0.0 (disabled)
+默认: 0.0 (禁用)
 
 idle_transaction_timeout
 ------------------------
 
-If client has been in "idle in transaction" state longer,
-it will be disconnected.  [seconds]
+如果客户端在"idle in transaction"状态的时间超长，
+将断开连接。  [seconds]
 
-Default: 0.0 (disabled)
+默认: 0.0 (禁用)
 
 
-Low-level network settings
+低级别网络设置
 ==========================
 
 pkt_buf
 -------
 
-Internal buffer size for packets. Affects size of TCP packets sent and general
-memory usage. Actual libpq packets can be larger than this so, no need to set it
-large.
+数据包的内部缓冲区大小。影响发送的TCP数据包的大小和一般内存使用情况。
+实际的libpq数据包可以大于这个，所以不需要将它设置的很大。
 
-Default: 4096
+默认: 4096
 
 max_packet_size
 ---------------
 
-Maximum size for Postgres packets that PgBouncer allows through.  One packet
-is either one query or one resultset row.  Full resultset can be larger.
+PgBouncer允许的Postgres数据包的最大大小。
+一个数据包是一个查询或一个结果集行。全部结果集可以更大。
 
-Default: 2147483647
+默认: 2147483647
 
 listen_backlog
 --------------
 
-Backlog argument for listen(2).  Determines how many new unanswered connection
-attempts are kept in queue.  When queue is full, further new connections are dropped.
+listen(2)的Backlog参数。确定队列中保留了多少新的未应答的连接尝试。
+当队列已满时，将会删除更新的连接。
 
-Default: 128
+默认: 128
 
 sbuf_loopcnt
 ------------
 
-How many times to process data on one connection, before proceeding.
-Without this limit, one connection with a big resultset can stall
-PgBouncer for a long time.  One loop processes one `pkt_buf`_ amount of data.
-0 means no limit.
+在继续进行之前，需要处理多少次一个连接上的数据。没有这个限制，
+一个大的结果集的连接可能会使PgBouncer长时间停止。
+一个循环处理一个`pkt_buf`_ 数据量。0表示没有限制。
 
-Default: 5
+默认: 5
 
 suspend_timeout
 ---------------
 
-How many seconds to wait for buffer flush during SUSPEND or reboot (-R).
-Connection is dropped if flush does not succeed.
+在SUSPEND或重新启动（-R）期间等待缓冲区刷新的秒数。
+如果刷新不成功，连接将被丢弃。
 
-Default: 10
+默认: 10
 
 tcp_defer_accept
 ----------------
 
-For details on this and other tcp options, please see ``man 7 tcp``.
+有关此项和其他tcp选项的详细信息，请参阅``man 7 tcp``。
 
-Default: 45 on Linux, otherwise 0
+默认: Linux上是45，其他是 0
 
 tcp_socket_buffer
 -----------------
 
-Default: not set
+默认: 没有设置
 
 tcp_keepalive
 --------------
 
-Turns on basic keepalive with OS defaults.
+使用操作系统默认值打开基本的keepalive。
 
-On Linux, the system defaults are **tcp_keepidle=7200**, **tcp_keepintvl=75**,
-**tcp_keepcnt=9**.  They are probably similar on other OS-es.
+在Linux上，系统默认是**tcp_keepidle=7200**、**tcp_keepintvl=75**、
+**tcp_keepcnt=9**。其他系统上大概类似。
 
-Default: 1
+默认: 1
 
 tcp_keepcnt
 -----------
 
-Default: not set
+默认: 没有设置
 
 tcp_keepidle
 ------------
 
-Default: not set
+默认: 没有设置
 
 tcp_keepintvl
 -------------
 
-Default: not set
+默认: 没有设置
 
 
 Section [databases]
 ===================
 
-This contains key=value pairs where key will be taken as a database name and
-value as a libpq connect-string style list of key=value pairs. As actual libpq is not
-used, so not all features from libpq can be used (service=, .pgpass).
+包含key=value对，其中key将被看做数据库名，
+value被看做key=value对的libpq连接字符串风格列表。
+实际上没有使用libpq，所以并不是libpq的所有特性都可以使用(service=, .pgpass)。
 
-Database name can contain characters ``_0-9A-Za-z`` without quoting.
-Names that contain other chars need to be quoted with standard SQL
-ident quoting: double quotes where "" is taken as single quote.
+数据库名可以包含字符``_0-9A-Za-z``而不必引用。
+包含其他字符的名称需要使用标准SQL识别引号引用：双引号""被看做单引号。
 
-"*" acts as fallback database: if the exact name does not exist,
-its value is taken as connect string for requested database.
-Such automatically created database entries are cleaned up
-if they stay idle longer then the time specified in `autodb_idle_timeout`_
-parameter.
+"*"用作备用数据库：如果准确的名称不存在，那么它的值被看做是所请求数据库的连接字符串。
+如果这种自动创建的数据库项保持空闲状态的时间超过`autodb_idle_timeout`_
+参数指定的时间，则会被清理。
 
 dbname
 ------
 
-Destination database name.
+目标数据库名称。
 
-Default: same as client-side database name.
+默认：和客户端数据库名称相同。
 
 host
 ----
 
-Hostname or IP address to connect to.  Hostnames are resolved
-on connect time, the result is cached per ``dns_max_ttl`` parameter.
-If DNS returns several results, they are used in round-robin
-manner.
+要连接的主机名或IP地址。主机名在连接时解析，
+结果按照``dns_max_ttl``参数缓存。 如果DNS返回多个结果，则以循环方式使用。
 
-Default: not set, meaning to use a Unix socket.
+默认：没有设置，意味着使用Unix套接字。
 
 port
 ----
 
-Default: 5432
+默认: 5432
 
 user, password
 --------------
 
-If ``user=`` is set, all connections to the destination database will be
-done with the specified user, meaning that there will be only one pool
-for this database.
+如果已经设置了``user=``，则目标数据库的所有连接将使用指定的用户完成，
+意味着这个数据库将只有一个池。
 
-Otherwise PgBouncer tries to log into the destination database with client
-username, meaning that there will be one pool per user.
+否则PgBouncer尝试使用客户端用户名登录到目标数据库，意味着每个用户有一个池。
 
 auth_user
 ---------
 
-If ``auth_user`` is set, any user not specified in auth_file will be
-queried from pg_shadow in the database using ``auth_user``. Auth_user's
-password will be taken from ``auth_file``.
+如果已经设置``auth_user``，没有在auth_file中指出的任何用户将使用
+``auth_user``从数据库中的pg_shadow中查询。Auth_user的密码将从``auth_file``中获取。
 
-Direct access to pg_shadow requires admin rights.  It's preferable to
-use non-admin user that calls SECURITY DEFINER function instead.
+直接访问pg_shadow要求管理员权限。最好是使用非管理员用户调用SECURITY DEFINER功能。
 
 pool_size
 ---------
 
-Set maximum size of pools for this database.  If not set,
-the default_pool_size is used.
+设置该数据库池的最大尺寸。如果没有设置，默认使用default_pool_size。
 
 connect_query
 -------------
 
-Query to be executed after a connection is established, but before
-allowing the connection to be used by any clients. If the query raises errors,
-they are logged but ignored otherwise.
+在建立连接之后但在允许任何客户端使用连接之前执行的查询。
+如果查询引发错误，则会被记录，否则会被忽略。
 
 pool_mode
 ---------
 
-Set the pool mode specific to this database. If not set,
-the default pool_mode is used.
+设置特定于该数据库的池模式。如果没有设置，则使用默认的pool_mode。
 
 max_db_connections
 ------------------
 
-Configure a database-wide maximum (i.e. all pools within the database will
-not have more than this many server connections).
+配置一个数据库范围的最大值（也就是，数据库中的所有池将不会拥有超过此数量的服务器连接）。
 
 client_encoding
 ---------------
 
-Ask specific ``client_encoding`` from server.
+从服务器询问具体的``client_encoding``。
 
 datestyle
 ---------
 
-Ask specific ``datestyle`` from server.
+从服务器询问具体的``datestyle``。
 
 timezone
 --------
 
-Ask specific **timezone** from server.
+从服务器询问具体的**timezone**。
 
 
 Section [users]
 ===============
 
-This contains key=value pairs where key will be taken as a user name and
-value as a libpq connect-string style list of key=value pairs. As actual libpq is not
-used, so not all features from libpq can be used.
+包含key=value对，其中key将被看做用户名，
+value被看做key=value对的libpq连接字符串风格列表。
+实际上没有使用libpq，所以并不是libpq的所有特性都可以使用。
 
 
 pool_mode
 ---------
 
-Set the pool mode to be used for all connections from this user. If not set, the
-database or default pool_mode is used.
+将池模式设置为用于该用户的所有连接。如果没有设置，
+则使用数据库或默认的pool_mode。
 
 
-Include directive
+include指令
 =================
 
-The PgBouncer config file can contain include directives, which specify
-another config file to read and process. This allows for splitting the
-configuration file into physically separate parts. The include directives look
-like this::
+PgBouncer配置文件可以包含include指令，它们指定另一个配置文件进行读取和处理。
+这允许将配置文件分割成物理上分开的部分。include指令如下所示：
 
   %include filename
 
-If the file name is not absolute path it is taken as relative to current
-working directory.
+如果文件名不是绝对路径，则将其视为与当前工作目录相对。
 
-Authentication file format
+验证文件格式
 ==========================
 
-PgBouncer needs its own user database. The users are loaded from a text
-file in following format::
+PgBouncer需要自己的用户数据库。用户从以下格式的文本文件中加载::
 
   "username1" "password" ...
   "username2" "md5abcdef012342345" ...
 
-There should be at least 2 fields, surrounded by double quotes. The first
-field is the username and the second is either a plain-text or a MD5-hidden
-password.  PgBouncer ignores the rest of the line.
+应至少有2个字段，由双引号括起来。第一个字段是用户名，
+第二个字段是纯文本或MD5隐藏密码。PgBouncer忽略行的剩余部分。
 
-This file format is equivalent to text files used by PostgreSQL 8.x
-for authentication info, thus allowing PgBouncer to work directly
-on PostgreSQL authentication files in data directory.
+此文件格式相当于PostgreSQL 8.x用于验证信息的文本文件，
+从而允许PgBouncer直接在数据目录中的PostgreSQL身份验证文件上工作。
 
-Since PostgreSQL 9.0, the text files are not used anymore.  Thus the
-auth file needs to be generated.   See `./etc/mkauth.py` for sample script
-to generate auth file from `pg_shadow` table.
+自PostgreSQL 9.0以来，不再使用文本文件了。因此，需要生成验证文件。
+请参阅`./etc/mkauth.py`来获取样本脚本，来从`pg_shadow`表生成auth文件。
 
-PostgreSQL MD5-hidden password format::
+PostgreSQL MD5隐藏密码格式::
 
   "md5" + md5(password + username)
 
-So user `admin` with password `1234` will have MD5-hidden password
-`md545f2603610af569b6155c45067268c6b`.
+所以用户`admin`、密码`1234'将有MD5隐藏密码`md545f2603610af569b6155c45067268c6b``。
 
-HBA file format
+HBA文件格式
 ===============
 
-It follows the format of PostgreSQL pg_hba.conf file -
+它遵循PostgreSQL pg_hba.conf文件的格式-
 http://www.postgresql.org/docs/9.4/static/auth-pg-hba-conf.html
 
-There are following differences:
+有以下差异：
 
-* Supported record types: `local`, `host`, `hostssl`, `hostnossl`.
-* Database field: Supports `all`, `sameuser`, `@file`, multiple names.  Not supported: `replication`, `samerole`, `samegroup`.
-* Username field: Supports `all`, `@file`, multiple names.  Not supported: `+groupname`.
-* Address field: Supported IPv4, IPv6.  Not supported: DNS names, domain prefixes.
-* Auth-method field:  Supported methods: `trust`, `reject`, `md5`, `password`, `peer`, `cert`.
-  Not supported: `gss`, `sspi`, `ident`, `ldap`, `radius`, `pam`.
-  Also username map (`map=`) parameter is not supported.
+* 支持的记录类型: `local`、`host`、`hostssl`、`hostnossl`。
+* 数据库字段: 支持`all`、`sameuser`、`@file`、多个名字。不支持: `replication`、`samerole`、`samegroup`。
+* 用户名字段: 支持`all`、`@file`、多个名字。不支持: `+groupname`。
+* 地址字段: 支持IPv4、IPv6。不支持: DNS 名称、域前缀。
+* 认证方法字段: 支持的方法: `trust`、`reject`、`md5`、`password`、`peer`、`cert`。
+  不支持: `gss`、`sspi`、`ident`、`ldap`、`radius`、`pam`。
+  用户名映射(`map=`)参数也不支持。
 
-Example
+示例
 =======
 
-Minimal config::
+最小配置::
 
   [databases]
   template1 = host=127.0.0.1 dbname=template1 auth_user=someuser
@@ -989,20 +930,20 @@ Minimal config::
   admin_users = someuser
   stats_users = stat_collector
 
-Database defaults::
+数据库默认::
 
   [databases]
 
-  ; foodb over unix socket
+  ; unix套接字上的foodb
   foodb =
 
-  ; redirect bardb to bazdb on localhost
+  ; 重定向bardb到本地主机上的bazdb
   bardb = host=127.0.0.1 dbname=bazdb
 
-  ; access to destination database will go with single user
+  ; 使用单个用户访问目标数据库
   forcedb = host=127.0.0.1 port=300 user=baz password=foo client_encoding=UNICODE datestyle=ISO
 
-Example of secure function for auth_query::
+auth_query的安全功能示例::
 
   CREATE OR REPLACE FUNCTION pgbouncer.user_lookup(in i_username text, out uname text, out phash text)
   RETURNS record AS $$
@@ -1016,7 +957,7 @@ Example of secure function for auth_query::
   GRANT EXECUTE ON FUNCTION pgbouncer.user_lookup(text) TO pgbouncer;
 
 
-See also
+又见
 ========
 
 
@@ -1024,4 +965,4 @@ https://pgbouncer.github.io/
 
 https://wiki.postgresql.org/wiki/PgBouncer
 
-pgbouncer(1) - manpage for general usage, console commands.
+pgbouncer(1) - 一般使用、控制台命令的手册页。
