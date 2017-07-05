@@ -15,8 +15,8 @@ pgbouncer.ini
 logfile
 -------
 
-指定日志文件。日志文件是保持打开的，所以重启``kill -HUP``之后
-或控制台上``RELOAD;``应该完成。
+指定日志文件。日志文件是保持打开的，所以重启 ``kill -HUP`` 之后
+或控制台上 ``RELOAD;`` 应该完成。
 注意：在Windows机器上，服务必须停止并启动。
 
 默认：没有设置。
@@ -32,7 +32,7 @@ listen_addr
 -----------
 
 指定地址列表，表明在哪里监听TCP连接。
-你还可以使用``*``表示“监听所有地址”。没有设置时，
+你还可以使用 ``*`` 表示“监听所有地址”。没有设置时，
 只允许Unix套接字连接。
 
 可以用数字(IPv4/IPv6)或名称指定地址。
@@ -86,7 +86,7 @@ auth_file
 
 从中加载用户名和密码的文件名。文件格式和PostgreSQL 8.x pg_auth/pg_pwd
 文件相同。自版本9.0以来，PostgreSQL不再使用这种文本文件，所以它必须手动生成。
-详见下面的‘认证文件格式’章节。
+详见下面的 `认证文件格式`_ 章节。
 
 默认：没有设置。
 
@@ -94,7 +94,7 @@ auth_file
 auth_hba_file
 -------------
 
-当`auth_type`是``hba``时要使用的HBA配置文件。
+当 `auth_type`_ 是 ``hba`` 时要使用的HBA配置文件。
 从版本1.7开始支持。
 
 默认：没有设置。
@@ -105,8 +105,8 @@ auth_type
 如何验证用户。
 
 hba
-    实际验证类型是从`auth_hba_file`文件中加载的。这允许不同的验证方式、
-    不同的访问路径。例如：unix套接字上的连接使用``peer``认证类型，
+    实际验证类型是从 `auth_hba_file`_ 文件中加载的。这允许不同的验证方式、
+    不同的访问路径。例如：unix套接字上的连接使用 ``peer`` 认证类型，
     TCP上的连接必须使用TLS。从版本1.7开始支持。
 
 cert
@@ -114,17 +114,17 @@ cert
     然后，用户名从证书中的CommonName字段中取出。
 
 md5
-    使用基于MD5的密码检查。`auth_file`_可能同时包含MD5加密
+    使用基于MD5的密码检查。 `auth_file`_ 可能同时包含MD5加密
     或纯文本密码。这是默认的身份验证方法。
 
 plain
     明文密码通过线路发送。已过时。
 
 trust
-    不执行认证。用户名必须仍然存在于`auth_file`_中。
+    不执行认证。用户名必须仍然存在于 `auth_file`_ 中。
 
 any
-    类似于``trust``方式，但是不需要用户名。
+    类似于 ``trust`` 方式，但是不需要用户名。
     要求将所有数据库配置为以特定用户身份登陆。另外，
     控制台数据库允许任意用户以管理员身份登陆。
 
@@ -169,8 +169,8 @@ max_client_conn
 理论上的最大值应该永远不会达到，除非有人故意制造出特殊的负荷。
 不过，这意味着您应该将文件描述符的数量设置为安全的数字。
 
-在你最喜欢的shell手册页中搜索``ulimit``。
-注意：``ulimit``不适用于Windows环境。
+在你最喜欢的shell手册页中搜索 ``ulimit`` 。
+注意： ``ulimit`` 不适用于Windows环境。
 
 默认: 100
 
@@ -236,7 +236,7 @@ ignore_startup_parameters
 -------------------------
 
 默认情况下，pgbouncer只允许在启动数据包中可以跟踪的参数——
-``client_encoding``、``datestyle``、``timezone``和``standard_conforming_strings``。
+``client_encoding``、``datestyle``、``timezone`` 和 ``standard_conforming_strings`` 。
 
 所有其他参数会引发错误。为了允许其他参数，可以在这里指定它们，
 以便pgbouncer知道它们由管理员处理，并且可以忽略它们。
@@ -265,7 +265,7 @@ conffile
 --------
 
 显示当前配置文件的位置。改变它将使PgBouncer为下一个
-``RELOAD`` / ``SIGHUP``使用另一个配置文件。
+``RELOAD`` / ``SIGHUP`` 使用另一个配置文件。
 
 默认: 来自命令行的文件。
 
@@ -279,7 +279,7 @@ service_name
 job_name
 --------
 
-`service_name`_的别名。
+`service_name`_ 的别名。
 
 
 日志设置
@@ -304,7 +304,7 @@ syslog_facility
 ---------------
 
 在什么工具上发送日志到syslog。
-可能性: ``auth``、``authpriv``、``daemon``、``user``、``local0-7``.
+可能性: ``auth``、``authpriv``、``daemon``、``user``、``local0-7``。
 
 默认: daemon
 
@@ -340,7 +340,7 @@ stats_period
 -------
 
 增加冗长度。"-v"打开命令行。
-在命令行上使用"-v -v"等同于在配置中设置`verbose=2`。
+在命令行上使用"-v -v"等同于在配置中设置 `verbose=2` 。
 
 默认: 0
 
@@ -352,7 +352,7 @@ admin_users
 -----------
 
 允许逗号分隔的数据库用户列表在控制台上连接并运行所有命令。
-当`auth_type`_ 是``any``时忽略，这种情况下允许任何用户作为管理员登陆。
+当 `auth_type`_ 是 ``any`` 时忽略，这种情况下允许任何用户作为管理员登陆。
 
 默认: 空
 
@@ -372,15 +372,15 @@ server_reset_query
 ------------------
 
 在向其他客户端提供查询之前，发送到服务器的连接发布。在那一刻，
-没有任何事务正在进行中，因此它不应该包含``ABORT``或``ROLLBACK``。
+没有任何事务正在进行中，因此它不应该包含 ``ABORT`` 或 ``ROLLBACK`` 。
 
 该查询应该清除对数据库会话所做的任何更改，
-以便下一个客户端以良好定义的状态获取连接。默认是``DISCARD ALL``，
+以便下一个客户端以良好定义的状态获取连接。默认是 ``DISCARD ALL`` ，
 它清除所有内容，但这会使下一个客户端没有预缓存状态。
 如果应用程序在一些状态被保留时不会中断，它可以做得更轻，
-例如``DEALLOCATE ALL``只是删除准备好的语句。
+例如 ``DEALLOCATE ALL`` 只是删除准备好的语句。
 
-当使用事务池时，不使用`server_reset_query`_，
+当使用事务池时，不使用 `server_reset_query`_ ，
 因为客户端必须不能使用任何基于会话的功能，因为每个事务都以不同的连接结束，
 并且因此获得不同的会话状态。
 
@@ -389,8 +389,8 @@ server_reset_query
 server_reset_query_always
 -------------------------
 
-`server_reset_query`_是否应该在所有池模式中运行。当此设置为off（默认），
-`server_reset_query`_将只能在会话池模式中运行。事务池模式中的连接不需要重置查询。
+`server_reset_query`_ 是否应该在所有池模式中运行。当此设置为off（默认），
+`server_reset_query`_ 将只能在会话池模式中运行。事务池模式中的连接不需要重置查询。
 
 这是破坏在事务池pgbouncer上使用会话功能运行应用程序设置的解决办法。
 将非确定性破坏变为确定性破坏 - 每次事务之后，客户端总是丢失自己的状态。
@@ -487,7 +487,7 @@ PgBouncer可以从主机名（第一个点之后的任何地方）收集dns区域，
 然后定期检查区域串行更改。如果注意到更改，
 则该区域下的所有主机名将再次被查找。如果任何主机ip更改，则它的连接无效。
 
-仅适用于UDNS后端 (``--with-udns``来配置)。
+仅适用于UDNS后端 (``--with-udns`` 来配置)。
 
 默认: 0.0 (禁用)
 
@@ -499,7 +499,7 @@ client_tls_sslmode
 ------------------
 
 用于从客户端连接的TLS模式。默认是禁用TLS连接的。当启用时，
-还必须配置`client_tls_key_file`_和`client_tls_cert_file`_ ，
+还必须配置 `client_tls_key_file`_ 和 `client_tls_cert_file`_ ，
 以配置PgBouncer用于接受客户端连接的密钥和证书。
 
 disable
@@ -510,7 +510,7 @@ allow
     如果客户端使用了客户端证书，则不会验证。
 
 prefer
-    和``allow``相同。
+    和 ``allow`` 相同。
 
 require
     客户端必须使用TLS。如果不使用，则拒绝客户端连接。
@@ -520,7 +520,7 @@ verify-ca
     客户必须使用带有有效客户端证书的TLS。
 
 verify-full
-    和``verify-ca``相同。
+    和 ``verify-ca`` 相同。
 
 client_tls_key_file
 -------------------
@@ -595,11 +595,11 @@ require
     不验证服务器证书。
 
 verify-ca
-    连接必须通过TLS，并且服务器证书必须根据`server_tls_ca_file`_有效。
+    连接必须通过TLS，并且服务器证书必须根据 `server_tls_ca_file`_ 有效。
     不根据证书检查服务器主机名。
 
 verify-full
-    连接必须通过TLS，并且服务器证书必须根据`server_tls_ca_file`_有效。
+    连接必须通过TLS，并且服务器证书必须根据 `server_tls_ca_file`_ 有效。
     服务器主机名必须匹配证书信息。
 
 server_tls_ca_file
@@ -710,7 +710,7 @@ sbuf_loopcnt
 
 在继续进行之前，需要处理多少次一个连接上的数据。没有这个限制，
 一个大的结果集的连接可能会使PgBouncer长时间停止。
-一个循环处理一个`pkt_buf`_ 数据量。0表示没有限制。
+一个循环处理一个 `pkt_buf`_ 数据量。0表示没有限制。
 
 默认: 5
 
@@ -725,7 +725,7 @@ suspend_timeout
 tcp_defer_accept
 ----------------
 
-有关此项和其他tcp选项的详细信息，请参阅``man 7 tcp``。
+有关此项和其他tcp选项的详细信息，请参阅 ``man 7 tcp``。
 
 默认: Linux上是45，其他是 0
 
@@ -739,7 +739,7 @@ tcp_keepalive
 
 使用操作系统默认值打开基本的keepalive。
 
-在Linux上，系统默认是**tcp_keepidle=7200**、**tcp_keepintvl=75**、
+在Linux上，系统默认是 **tcp_keepidle=7200**、**tcp_keepintvl=75**、
 **tcp_keepcnt=9**。其他系统上大概类似。
 
 默认: 1
@@ -767,11 +767,11 @@ Section [databases]
 value被看做key=value对的libpq连接字符串风格列表。
 实际上没有使用libpq，所以并不是libpq的所有特性都可以使用(service=, .pgpass)。
 
-数据库名可以包含字符``_0-9A-Za-z``而不必引用。
+数据库名可以包含字符 ``_0-9A-Za-z`` 而不必引用。
 包含其他字符的名称需要使用标准SQL识别引号引用：双引号""被看做单引号。
 
 "*"用作备用数据库：如果准确的名称不存在，那么它的值被看做是所请求数据库的连接字符串。
-如果这种自动创建的数据库项保持空闲状态的时间超过`autodb_idle_timeout`_
+如果这种自动创建的数据库项保持空闲状态的时间超过 `autodb_idle_timeout`_
 参数指定的时间，则会被清理。
 
 dbname
@@ -785,7 +785,7 @@ host
 ----
 
 要连接的主机名或IP地址。主机名在连接时解析，
-结果按照``dns_max_ttl``参数缓存。 如果DNS返回多个结果，则以循环方式使用。
+结果按照 ``dns_max_ttl`` 参数缓存。 如果DNS返回多个结果，则以循环方式使用。
 
 默认：没有设置，意味着使用Unix套接字。
 
@@ -797,7 +797,7 @@ port
 user, password
 --------------
 
-如果已经设置了``user=``，则目标数据库的所有连接将使用指定的用户完成，
+如果已经设置了 ``user=``，则目标数据库的所有连接将使用指定的用户完成，
 意味着这个数据库将只有一个池。
 
 否则PgBouncer尝试使用客户端用户名登录到目标数据库，意味着每个用户有一个池。
@@ -805,8 +805,8 @@ user, password
 auth_user
 ---------
 
-如果已经设置``auth_user``，没有在auth_file中指出的任何用户将使用
-``auth_user``从数据库中的pg_shadow中查询。Auth_user的密码将从``auth_file``中获取。
+如果已经设置 ``auth_user``，没有在auth_file中指出的任何用户将使用
+``auth_user`` 从数据库中的pg_shadow中查询。Auth_user的密码将从 ``auth_file`` 中获取。
 
 直接访问pg_shadow要求管理员权限。最好是使用非管理员用户调用SECURITY DEFINER功能。
 
@@ -834,17 +834,17 @@ max_db_connections
 client_encoding
 ---------------
 
-从服务器询问具体的``client_encoding``。
+从服务器询问具体的 ``client_encoding``。
 
 datestyle
 ---------
 
-从服务器询问具体的``datestyle``。
+从服务器询问具体的 ``datestyle``。
 
 timezone
 --------
 
-从服务器询问具体的**timezone**。
+从服务器询问具体的 **timezone**。
 
 
 Section [users]
@@ -872,7 +872,7 @@ PgBouncer配置文件可以包含include指令，它们指定另一个配置文件进行读取和处理。
 
 如果文件名不是绝对路径，则将其视为与当前工作目录相对。
 
-验证文件格式
+认证文件格式
 ==========================
 
 PgBouncer需要自己的用户数据库。用户从以下格式的文本文件中加载::
@@ -887,13 +887,13 @@ PgBouncer需要自己的用户数据库。用户从以下格式的文本文件中加载::
 从而允许PgBouncer直接在数据目录中的PostgreSQL身份验证文件上工作。
 
 自PostgreSQL 9.0以来，不再使用文本文件了。因此，需要生成验证文件。
-请参阅`./etc/mkauth.py`来获取样本脚本，来从`pg_shadow`表生成auth文件。
+请参阅 `./etc/mkauth.py` 来获取样本脚本，来从 `pg_shadow` 表生成auth文件。
 
 PostgreSQL MD5隐藏密码格式::
 
   "md5" + md5(password + username)
 
-所以用户`admin`、密码`1234'将有MD5隐藏密码`md545f2603610af569b6155c45067268c6b``。
+所以用户 `admin`、密码 `1234` 将有MD5隐藏密码 `md545f2603610af569b6155c45067268c6b`。
 
 HBA文件格式
 ===============
@@ -904,8 +904,8 @@ http://www.postgresql.org/docs/9.4/static/auth-pg-hba-conf.html
 有以下差异：
 
 * 支持的记录类型: `local`、`host`、`hostssl`、`hostnossl`。
-* 数据库字段: 支持`all`、`sameuser`、`@file`、多个名字。不支持: `replication`、`samerole`、`samegroup`。
-* 用户名字段: 支持`all`、`@file`、多个名字。不支持: `+groupname`。
+* 数据库字段: 支持 `all`、`sameuser`、`@file`、多个名字。不支持: `replication`、`samerole`、`samegroup`。
+* 用户名字段: 支持 `all`、`@file`、多个名字。不支持: `+groupname`。
 * 地址字段: 支持IPv4、IPv6。不支持: DNS 名称、域前缀。
 * 认证方法字段: 支持的方法: `trust`、`reject`、`md5`、`password`、`peer`、`cert`。
   不支持: `gss`、`sspi`、`ident`、`ldap`、`radius`、`pam`。
@@ -914,7 +914,7 @@ http://www.postgresql.org/docs/9.4/static/auth-pg-hba-conf.html
 示例
 =======
 
-最小配置::
+最小配置 ::
 
   [databases]
   template1 = host=127.0.0.1 dbname=template1 auth_user=someuser
@@ -930,7 +930,7 @@ http://www.postgresql.org/docs/9.4/static/auth-pg-hba-conf.html
   admin_users = someuser
   stats_users = stat_collector
 
-数据库默认::
+数据库默认 ::
 
   [databases]
 
@@ -943,7 +943,7 @@ http://www.postgresql.org/docs/9.4/static/auth-pg-hba-conf.html
   ; 使用单个用户访问目标数据库
   forcedb = host=127.0.0.1 port=300 user=baz password=foo client_encoding=UNICODE datestyle=ISO
 
-auth_query的安全功能示例::
+auth_query的安全功能示例 ::
 
   CREATE OR REPLACE FUNCTION pgbouncer.user_lookup(in i_username text, out uname text, out phash text)
   RETURNS record AS $$

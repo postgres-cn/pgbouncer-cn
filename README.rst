@@ -17,7 +17,7 @@ PgBouncer取决于几件事情获得编译：
 
 * `GNU Make`_ 3.81+
 * libevent_ 2.0
-* (可选的) 用于TLS支持的OpenSSL_ 1.0.1。
+* (可选的) 用于TLS支持的 OpenSSL_ 1.0.1。
 * (可选的) `c-ares`_ 作为libevent的evdns的替换。
 
 .. _GNU Make: https://www.gnu.org/software/make/
@@ -25,7 +25,7 @@ PgBouncer取决于几件事情获得编译：
 .. _OpenSSL: https://www.openssl.org/
 .. _`c-ares`: http://c-ares.haxx.se/
 
-安装完依赖以后，只需要运行：
+安装完依赖以后，只需要运行 ::
 
     $ ./configure --prefix=/usr/local --with-libevent=libevent-prefix
     $ make
@@ -40,7 +40,7 @@ DNS查找支持
 这需要适当的异步DNS实现。以下列表显示支持的后端和他们的查看顺序：
 
 +----------------------------+----------+-----------+------------+----------------+---------------------------------------+
-| 后端                       | 并行     | EDNS0 (1) | /etc/hosts | SOA 查找 (2)  | 注意                                  |
+| 后端                       | 并行     | EDNS0 (1) | /etc/hosts | SOA 查找 (2)   | 注意                                  |
 +============================+==========+===========+============+================+=======================================+
 | c-ares                     | yes      | yes       | yes        | yes            | ipv6+CNAME buggy in <=1.10            |
 +----------------------------+----------+-----------+------------+----------------+---------------------------------------+
@@ -57,10 +57,10 @@ DNS查找支持
 
 1. EDNS0需要在一个主机名后面有超过8个地址。
 2. 需要进行SOA查找以重新检查区域串行更改的主机名
-3. 要启用EDNS0，添加`options edns0`到/etc/resolv.conf
+3. 要启用EDNS0，添加 `options edns0` 到/etc/resolv.conf
 
-`./configure`还有标志`--enable-evdns`和`--disable-evdns`，
-它们关闭自动探测并强制使用`evdns`或`getaddrinfo_a()`。
+`./configure` 还有标志 `--enable-evdns` 和 `--disable-evdns`，
+它们关闭自动探测并强制使用 `evdns` 或 `getaddrinfo_a()`。
 
 从GIT构建
 -----------------
@@ -100,7 +100,7 @@ Cygwin和Visual $ AnyYTHING未经测试。 DNS主机名查询需要Libevent 2.x。
 从命令行运行是正常的，除了-d（守护进程），-R（重新启动）
 和-u（切换用户）开关将不工作。
 
-要作为Windows服务运行pgbouncer，你需要配置`service_name`
+要作为Windows服务运行pgbouncer，你需要配置 `service_name`
 参数为服务设置名字。然后：
 
 	$ pgbouncer -regservice config.ini

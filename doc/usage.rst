@@ -23,14 +23,14 @@ pgbouncer
 描述
 ===========
 
-**pgbouncer**是一个PostgreSQL连接池。
-任何目标应用程序都可以连接到**pgbouncer**，
-就像它是PostgreSQL服务器一样，**pgbouncer**将创建到实际服务器的连接，
+**pgbouncer** 是一个PostgreSQL连接池。
+任何目标应用程序都可以连接到 **pgbouncer**，
+就像它是PostgreSQL服务器一样，**pgbouncer** 将创建到实际服务器的连接，
 或者它将重用其中一个现有的连接。
 
-**pgbouncer**的目的是为了降低打开PostgreSQL新连接时的性能影响。
+**pgbouncer** 的目的是为了降低打开PostgreSQL新连接时的性能影响。
 
-为了不影响连接池的事务语义，**pgbouncer**在切换连接时支持多种类型的池：
+为了不影响连接池的事务语义，**pgbouncer** 在切换连接时支持多种类型的池：
 
 会话连接池
     最礼貌的方法。当客户端连接时，将在客户端保持连接的整个持续时间内分配一个服务器连接。
@@ -44,15 +44,15 @@ pgbouncer
     最激进的模式。在查询完成后，服务器连接将立即被放回连接池中。
     这个模式中不允许多语句的事务，因为它们会中断。
 
-**pgbouncer**的管理界面由连接到特殊‘虚拟’数据库**pgbouncer**时可用的一些新的
-``SHOW``命令组成。
+**pgbouncer** 的管理界面由连接到特殊'虚拟'数据库 **pgbouncer** 时可用的一些新的
+``SHOW`` 命令组成。
 
 快速开始
 ===========
 
 基本设置和用法如下。
 
-1. 创建一个pgbouncer.ini文件。**pgbouncer(5)**的详细信息。简单例子::
+1. 创建一个pgbouncer.ini文件。**pgbouncer(5)** 的详细信息。简单例子 ::
 
     [databases]
     template1 = host=127.0.0.1 port=5432 dbname=template1
@@ -66,21 +66,21 @@ pgbouncer
     pidfile = pgbouncer.pid
     admin_users = someuser
 
-2. 创建包含用户准入的``users.txt``文件::
+2. 创建包含用户准入的 ``users.txt`` 文件 ::
 
     "someuser" "same_password_as_in_server"
 
-3. 加载**pgbouncer**::
+3. 加载 **pgbouncer** ::
 
      $ pgbouncer -d pgbouncer.ini
 
-4. 你的应用程序（或**客户端psql**）已经连接到**pgbouncer**
+4. 你的应用程序（或 **客户端psql**）已经连接到 **pgbouncer**
 而不是直接连接到PostgreSQL服务器了吗：
 
     $ psql -p 6543 -U someuser template1
 
-5. 通过连接到特殊管理员数据库**pgbouncer**管理**pgbouncer**，
-发出``show help;``开始：
+5. 通过连接到特殊管理员数据库 **pgbouncer** 管理 **pgbouncer**，
+发出 ``show help;`` 开始 ::
 
       $ psql -p 6543 -U someuser pgbouncer
       pgbouncer=# show help;
@@ -103,12 +103,12 @@ pgbouncer
 
 -d
     在后台运行。没有它，进程将在前台运行。
-    注意：在Windows上不起作用，**pgbouncer**需要作为服务运行。
+    注意：在Windows上不起作用，**pgbouncer** 需要作为服务运行。
 
 -R
     进行在线重启。这意味着连接到正在运行的进程，从中加载打开的套接字，
     然后使用它们。如果没有活动进程，请正常启动。
-    注意：只有在操作系统支持Unix套接字且“unix_socket_dir”
+    注意：只有在操作系统支持Unix套接字且 `unix_socket_dir`
     在配置中未被禁用时才可用。在Windows机器上不起作用。
     不使用TLS连接，它们被删除了。
 
@@ -138,20 +138,20 @@ pgbouncer
 管理控制台
 =============
 
-通过正常连接到数据库**pgbouncer**可以使用控制台::
+通过正常连接到数据库 **pgbouncer** 可以使用控制台 ::
 
   $ psql -p 6543 pgbouncer
 
-只有在配置参数**admin_users**或**stats_users**中列出的用户才允许登录到控制台。
-（除了`auth_mode=any`时，任何用户都可以作为stats_user登录。）
+只有在配置参数 **admin_users** 或 **stats_users** 中列出的用户才允许登录到控制台。
+（除了 `auth_mode=any` 时，任何用户都可以作为stats_user登录。）
 
 另外，如果通过Unix套接字登录，并且客户端具有与运行进程相同的Unix用户uid，
-允许用户名**pgbouncer**不使用密码登录，
+允许用户名 **pgbouncer** 不使用密码登录，
 
 显示命令
 ~~~~~~~~~~~~~
 
-**SHOW**命令输出信息。在下面描述每个命令。
+**SHOW** 命令输出信息。在下面描述每个命令。
 
 SHOW STATS;
 -----------
@@ -162,16 +162,16 @@ database
     为每个数据库提供统计信息。
 
 total_requests
-    由**pgbouncer**汇总的SQL请求总数。
+    由**pgbouncer** 汇总的SQL请求总数。
 
 total_received
-    **pgbouncer**收到的网络流量总字节数。
+    **pgbouncer** 收到的网络流量总字节数。
 
 total_sent
-    **pgbouncer**发送的网络流量总字节数。
+    **pgbouncer** 发送的网络流量总字节数。
 
 total_query_time
-    当主动连接到PostgreSQL时**pgbouncer**花费的微秒数。
+    当主动连接到PostgreSQL时 **pgbouncer** 花费的微秒数。
 
 avg_req
     上次统计期间每秒平均请求数。
@@ -192,14 +192,14 @@ type
     S，用于服务器。
 
 user
-    **pgbouncer**用于连接到服务器的用户名。 
+    **pgbouncer** 用于连接到服务器的用户名。 
 
 database
     数据库名。
 
 state
-    pgbouncer服务器连接的状态，**active**、**used**或
-    **idle**之一。
+    pgbouncer服务器连接的状态，**active**、**used** 或
+    **idle** 之一。
 
 addr
   PostgreSQL server服务器的IP地址。
@@ -245,7 +245,7 @@ database
 
 state
     客户端连接的状态，**active**、**used**、**waiting**
-    或**idle**之一。
+    或 **idle** 之一。
 
 addr
     客户端的IP地址。
@@ -298,11 +298,11 @@ sv_idle
     未使用且可立即用于客户机查询的服务器连接。
 
 sv_used
-    已经闲置超过`server_check_delay`时长的服务器连接，
-    所以在它可以使用之前，需要运行`server_check_query`。
+    已经闲置超过 `server_check_delay` 时长的服务器连接，
+    所以在它可以使用之前，需要运行 `server_check_query`。
 
 sv_tested
-    当前正在运行`server_reset_query`或`server_check_query`的服务器连接。
+    当前正在运行 `server_reset_query` 或 `server_check_query` 的服务器连接。
 
 sv_login
     当前正在登录过程中的服务器连接。
@@ -310,7 +310,7 @@ sv_login
 maxwait
     队列中第一个（最老的）客户端已经等待了多长时间，以秒计。
     如果它开始增加，那么服务器当前的连接池处理请求的速度不够快。
-    原因可能是服务器负载过重或**pool_size**设置过小。
+    原因可能是服务器负载过重或 **pool_size** 设置过小。
 
 pool_mode
     正在使用的连接池模式。
@@ -336,7 +336,7 @@ used_clients
     使用了的客户端计数。
 
 login_clients
-    在**login**状态中的客户端计数。
+    在 **login** 状态中的客户端计数。
 
 free_servers
     空闲服务器计数。
@@ -394,7 +394,7 @@ fd
     文件描述符数值。
 
 task
-    **pooler**、**client**或**server**之一。
+    **pooler**、**client** 或 **server** 之一。
 
 user
     使用该FD的连接的用户。
@@ -403,7 +403,7 @@ database
     使用该FD的连接的数据库。
 
 addr
-    使用FD的连接的IP地址，如果使用unix套接字则是**unix**。
+    使用FD的连接的IP地址，如果使用unix套接字则是 **unix**。
 
 port
     使用FD的连接的端口。
@@ -426,8 +426,8 @@ value
     配置值
 
 changeable
-    **yes**或者**no**，显示运行时变量是否可更改。
-    如果是**no**，则该变量只能在启动时改变。
+    **yes** 或者 **no**，显示运行时变量是否可更改。
+    如果是 **no**，则该变量只能在启动时改变。
 
 SHOW DNS_HOSTS;
 ---------------
@@ -478,7 +478,7 @@ DISABLE db;
 ENABLE db;
 ----------
 
-在上一个的**DISABLE**命令之后允许新的客户端连接。
+在上一个的 **DISABLE** 命令之后允许新的客户端连接。
 
 KILL db;
 --------
@@ -494,7 +494,7 @@ SUSPEND;
 RESUME [db];
 ------------
 
-从之前的**PAUSE**或**SUSPEND**命令中恢复工作。
+从之前的 **PAUSE** 或 **SUSPEND** 命令中恢复工作。
 
 SHUTDOWN;
 ---------
@@ -510,13 +510,13 @@ PgBouncer进程将重新加载它的配置文件并更新可改变的设置。
 ~~~~~~~
 
 SIGHUP
-    重新加载配置。与在控制台上发出命令**RELOAD;**相同。
+    重新加载配置。与在控制台上发出命令 **RELOAD;** 相同。
 
 SIGINT
-    安全关闭。与在控制台上发出**PAUSE;**和**SHUTDOWN;**相同。
+    安全关闭。与在控制台上发出 **PAUSE;** 和 **SHUTDOWN;** 相同。
 
 SIGTERM
-    立即关闭。与在控制台上发出**SHUTDOWN;**相同。
+    立即关闭。与在控制台上发出 **SHUTDOWN;** 相同。
 
 Libevent设置
 ~~~~~~~~~~~~~~~~~
