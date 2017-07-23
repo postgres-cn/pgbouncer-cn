@@ -2,7 +2,7 @@
 pgbouncer
 #########
 
-��Ҫ
+概要
 ========
 
 ::
@@ -10,49 +10,49 @@ pgbouncer
   pgbouncer [-d][-R][-v][-u user] <pgbouncer.ini>
   pgbouncer -V|-h
 
-��Windows������ϣ�ѡ����:
+在Windows计算机上，选项有:
 
   pgbouncer.exe [-v][-u user] <pgbouncer.ini>
   pgbouncer.exe -V|-h
 
-����Windows���������ѡ��::
+设置Windows服务的其他选项::
 
   pgbouncer.exe --regservice   <pgbouncer.ini>
   pgbouncer.exe --unregservice <pgbouncer.ini>
 
-����
+描述
 ===========
 
-**pgbouncer** ��һ��PostgreSQL���ӳء�
-�κ�Ŀ��Ӧ�ó��򶼿������ӵ� **pgbouncer**��
-��������PostgreSQL������һ����**pgbouncer** ��������ʵ�ʷ����������ӣ�
-����������������һ�����е����ӡ�
+**pgbouncer** 是一个PostgreSQL连接池。
+任何目标应用程序都可以连接到 **pgbouncer**，
+就像它是PostgreSQL服务器一样，**pgbouncer** 将创建到实际服务器的连接，
+或者它将重用其中一个现有的连接。
 
-**pgbouncer** ��Ŀ����Ϊ�˽��ʹ�PostgreSQL������ʱ������Ӱ�졣
+**pgbouncer** 的目的是为了降低打开PostgreSQL新连接时的性能影响。
 
-Ϊ�˲�Ӱ�����ӳص��������壬**pgbouncer** ���л�����ʱ֧�ֶ������͵ĳأ�
+为了不影响连接池的事务语义，**pgbouncer** 在切换连接时支持多种类型的池：
 
-�Ự���ӳ�
-    ����ò�ķ��������ͻ�������ʱ�����ڿͻ��˱������ӵ���������ʱ���ڷ���һ�����������ӡ�
-    ���ͻ��˶Ͽ�����ʱ�����������ӽ��Żص����ӳ��С�����Ĭ�ϵķ�����
+会话连接池
+    最礼貌的方法。当客户端连接时，将在客户端保持连接的整个持续时间内分配一个服务器连接。
+    当客户端断开连接时，服务器连接将放回到连接池中。这是默认的方法。
 
-�������ӳ�
-    ����������ֻ����һ���������ʱ��Ÿ���ͻ��ˡ�
-    ��PgBouncerע�⵽���������ʱ�򣬷��������ӽ���Ż����ӳ��С�
+事务连接池
+    服务器连接只有在一个事务里的时候才赋予客户端。
+    在PgBouncer注意到事务结束的时候，服务器连接将会放回连接池中。
 
-������ӳ�
-    �����ģʽ���ڲ�ѯ��ɺ󣬷��������ӽ��������Ż����ӳ��С�
-    ���ģʽ�в�����������������Ϊ���ǻ��жϡ�
+语句连接池
+    最激进的模式。在查询完成后，服务器连接将立即被放回连接池中。
+    这个模式中不允许多语句的事务，因为它们会中断。
 
-**pgbouncer** �Ĺ������������ӵ�����'����'���ݿ� **pgbouncer** ʱ���õ�һЩ�µ�
-``SHOW`` ������ɡ�
+**pgbouncer** 的管理界面由连接到特殊'虚拟'数据库 **pgbouncer** 时可用的一些新的
+``SHOW`` 命令组成。
 
-���ٿ�ʼ
+快速开始
 ===========
 
-�������ú��÷����¡�
+基本设置和用法如下。
 
-1. ����һ��pgbouncer.ini�ļ���**pgbouncer(5)** ����ϸ��Ϣ�������� ::
+1. 创建一个pgbouncer.ini文件。**pgbouncer(5)** 的详细信息。简单例子 ::
 
     [databases]
     template1 = host=127.0.0.1 port=5432 dbname=template1
@@ -66,21 +66,21 @@ pgbouncer
     pidfile = pgbouncer.pid
     admin_users = someuser
 
-2. ���������û�׼��� ``users.txt`` �ļ� ::
+2. 创建包含用户准入的 ``users.txt`` 文件 ::
 
     "someuser" "same_password_as_in_server"
 
-3. ���� **pgbouncer** ::
+3. 加载 **pgbouncer** ::
 
      $ pgbouncer -d pgbouncer.ini
 
-4. ���Ӧ�ó��򣨻� **�ͻ���psql**���Ѿ����ӵ� **pgbouncer**
-������ֱ�����ӵ�PostgreSQL����������
+4. 你的应用程序（或 **客户端psql**）已经连接到 **pgbouncer**
+而不是直接连接到PostgreSQL服务器了吗：
 
     $ psql -p 6543 -U someuser template1
 
-5. ͨ�����ӵ��������Ա���ݿ� **pgbouncer** ���� **pgbouncer**��
-���� ``show help;`` ��ʼ ::
+5. 通过连接到特殊管理员数据库 **pgbouncer** 管理 **pgbouncer**，
+发出 ``show help;`` 开始 ::
 
       $ psql -p 6543 -U someuser pgbouncer
       pgbouncer=# show help;
@@ -94,445 +94,445 @@ pgbouncer
         RESUME
         SHUTDOWN
 
-6. ������޸���pgbouncer.ini�ļ��������������������¼��أ�
+6. 如果你修改了pgbouncer.ini文件，可以用下列命令重新加载：
 
       pgbouncer=# RELOAD;
 
-�����п���
+命令行开关
 =====================
 
 -d
-    �ں�̨���С�û���������̽���ǰ̨���С�
-    ע�⣺��Windows�ϲ������ã�**pgbouncer** ��Ҫ��Ϊ�������С�
+    在后台运行。没有它，进程将在前台运行。
+    注意：在Windows上不起作用，**pgbouncer** 需要作为服务运行。
 
 -R
-    ������������������ζ�����ӵ��������еĽ��̣����м��ش򿪵��׽��֣�
-    Ȼ��ʹ�����ǡ����û�л���̣�������������
-    ע�⣺ֻ���ڲ���ϵͳ֧��Unix�׽����� `unix_socket_dir`
-    ��������δ������ʱ�ſ��á���Windows�����ϲ������á�
-    ��ʹ��TLS���ӣ����Ǳ�ɾ���ˡ�
+    进行在线重启。这意味着连接到正在运行的进程，从中加载打开的套接字，
+    然后使用它们。如果没有活动进程，请正常启动。
+    注意：只有在操作系统支持Unix套接字且 `unix_socket_dir`
+    在配置中未被禁用时才可用。在Windows机器上不起作用。
+    不使用TLS连接，它们被删除了。
 
 -u user
-    ����ʱ�л����������û���
+    启动时切换到给定的用户。
 
 -v
-    ������ϸ�ȡ��ɶ��ʹ�á�
+    增加详细度。可多次使用。
 
 -q
-    ���� - ��Ҫ�ǳ���stdout����ע�⣬
-    �ⲻӰ����־��ϸ�̶ȣ�ֻ�и�stdout����ʹ�á�����init.d�ű���
+    安静 - 不要登出到stdout。请注意，
+    这不影响日志详细程度，只有该stdout不被使用。用于init.d脚本。
 
 -V
-    ��ʾ�汾��
+    显示版本。
 
 -h
-    ��ʾ��̵İ�����
+    显示简短的帮助。
 
 --regservice
-    Win32��ע��pgbouncer��ΪWindows�������С� **service_name**
-    ���ò���ֵ����Ҫע������ơ�
+    Win32：注册pgbouncer作为Windows服务运行。 **service_name**
+    配置参数值用作要注册的名称。
 
 --unregservice
-    Win32: ע��Windows����
+    Win32: 注销Windows服务。
 
-��������̨
+管理控制台
 =============
 
-ͨ���������ӵ����ݿ� **pgbouncer** ����ʹ�ÿ���̨ ::
+通过正常连接到数据库 **pgbouncer** 可以使用控制台 ::
 
   $ psql -p 6543 pgbouncer
 
-ֻ�������ò��� **admin_users** �� **stats_users** ���г����û���������¼������̨��
-������ `auth_mode=any` ʱ���κ��û���������Ϊstats_user��¼����
+只有在配置参数 **admin_users** 或 **stats_users** 中列出的用户才允许登录到控制台。
+（除了 `auth_mode=any` 时，任何用户都可以作为stats_user登录。）
 
-���⣬���ͨ��Unix�׽��ֵ�¼�����ҿͻ��˾��������н�����ͬ��Unix�û�uid��
-�����û��� **pgbouncer** ��ʹ�������¼��
+另外，如果通过Unix套接字登录，并且客户端具有与运行进程相同的Unix用户uid，
+允许用户名 **pgbouncer** 不使用密码登录，
 
-��ʾ����
+显示命令
 ~~~~~~~~~~~~~
 
-**SHOW** ���������Ϣ������������ÿ�����
+**SHOW** 命令输出信息。在下面描述每个命令。
 
 SHOW STATS;
 -----------
 
-��ʾͳ����Ϣ��
+显示统计信息。
 
 database
-    Ϊÿ�����ݿ��ṩͳ����Ϣ��
+    为每个数据库提供统计信息。
 
 total_requests
-    ��**pgbouncer** ���ܵ�SQL����������
+    由**pgbouncer** 汇总的SQL请求总数。
 
 total_received
-    **pgbouncer** �յ��������������ֽ�����
+    **pgbouncer** 收到的网络流量总字节数。
 
 total_sent
-    **pgbouncer** ���͵������������ֽ�����
+    **pgbouncer** 发送的网络流量总字节数。
 
 total_query_time
-    ���������ӵ�PostgreSQLʱ **pgbouncer** ���ѵ�΢������
+    当主动连接到PostgreSQL时 **pgbouncer** 花费的微秒数。
 
 avg_req
-    �ϴ�ͳ���ڼ�ÿ��ƽ����������
+    上次统计期间每秒平均请求数。
 
 avg_recv
-    ÿ��ƽ�����գ��ӿͻ��ˣ��ֽڡ�
+    每秒平均接收（从客户端）字节。
 
 avg_sent
-    ÿ��ƽ�����ͣ����ͻ��ˣ��ֽڡ�
+    每秒平均发送（到客户端）字节。
 
 avg_query
-    ƽ����ѯ����ʱ�䣨��΢��Ϊ��λ����
+    平均查询持续时间（以微秒为单位）。
 
 SHOW SERVERS;
 -------------
 
 type
-    S�����ڷ�������
+    S，用于服务器。
 
 user
-    **pgbouncer** �������ӵ����������û����� 
+    **pgbouncer** 用于连接到服务器的用户名。 
 
 database
-    ���ݿ�����
+    数据库名。
 
 state
-    pgbouncer���������ӵ�״̬��**active**��**used** ��
-    **idle** ֮һ��
+    pgbouncer服务器连接的状态，**active**、**used** 或
+    **idle** 之一。
 
 addr
-  PostgreSQL server��������IP��ַ��
+  PostgreSQL server服务器的IP地址。
 
 port
-    PostgreSQL�������Ķ˿ڡ�
+    PostgreSQL服务器的端口。
 
 local_addr
-    �������������ĵ�ַ��
+    本机连接启动的地址。
 
 local_port
-    �����ϵ����������˿ڡ�
+    本机上的连接启动端口。
 
 connect_time
-    �������ӵ�ʱ�䡣
+    建立连接的时间。
 
 request_time
-    ���һ�����󷢳���ʱ�䡣
+    最后一个请求发出的时间。
 
 ptr
-    �����ӵ��ڲ�����ĵ�ַ������ΨһID��
+    此连接的内部对象的地址。用作唯一ID。
 
 link
-    ��������ԵĿͻ������ӵ�ַ��
+    服务器配对的客户端连接地址。
 
 remote_pid
-    ��˷��������̵�pid�����ͨ��unix�׽��ֽ������ӣ�
-    ����OS֧�ֻ�ȡ����ID��Ϣ����ΪOS pid��
-    ���������ӷ��������͵�ȡ�����ݰ�����ȡ�����������������Postgres��
-    ��Ӧ����PID�������������������һ��PgBouncer��������һ���������
+    后端服务器进程的pid。如果通过unix套接字进行连接，
+    并且OS支持获取进程ID信息，则为OS pid。
+    否则它将从服务器发送的取消数据包中提取出来，如果服务器是Postgres，
+    则应该是PID，但是如果服务器是另一个PgBouncer，则它是一个随机数。
 
 SHOW CLIENTS;
 -------------
 
 type
-    C�����ڿͻ��ˡ�
+    C，用于客户端。
 
 user
-    �ͻ��������û���
+    客户端连接用户。
 
 database
-    ���ݿ����ơ�
+    数据库名称。
 
 state
-    �ͻ������ӵ�״̬��**active**��**used**��**waiting**
-    �� **idle** ֮һ��
+    客户端连接的状态，**active**、**used**、**waiting**
+    或 **idle** 之一。
 
 addr
-    �ͻ��˵�IP��ַ��
+    客户端的IP地址。
 
 port
-    �ͻ������ӵ��Ķ˿ڡ�
+    客户端连接到的端口。
 
 local_addr
-    �����ϵ����ӽ�����ַ��
+    本机上的连接结束地址。
 
 local_port
-    �����ϵ����ӽ����˿ڡ�
+    本机上的连接结束端口。
 
 connect_time
-    ����ʱ��ʱ�����
+    连接时的时间戳。
 
 request_time
-    ���һ�οͻ��������ʱ�����
+    最近一次客户端请求的时间戳。
 
 ptr
-    �����ӵ��ڲ�����ĵ�ַ������ΨһID��
+    此连接的内部对象的地址。用作唯一ID。
 
 link
-    �ͻ�����Եķ��������ӵ�ַ��
+    客户端配对的服务器连接地址。
 
 remote_pid
-    ����ID���ڿͻ���ͨ��UNIX�׽������Ӳ���OS֧�ֻ�ȡ��������¡�
+    进程ID，在客户端通过UNIX套接字连接并且OS支持获取它的情况下。
 
 SHOW POOLS;
 -----------
 
-Ϊÿ��(database, user)����һ���µ����ӳ�ѡ�
+为每对(database, user)创建一个新的连接池选项。
 
 database
-    ���ݿ����ơ�
+    数据库名称。
 
 user
-    �û�����
+    用户名。
 
 cl_active
-    ���ӵ����������Ӳ����Դ�����ѯ�Ŀͻ������ӡ�
+    链接到服务器连接并可以处理查询的客户端连接。
 
 cl_waiting
-    �ѷ��Ͳ�ѯ����δ��÷��������ӵĿͻ������ӡ�
+    已发送查询但尚未获得服务器连接的客户端连接。
 
 sv_active
-    ���ӵ��ͻ��˵ķ��������ӡ�
+    链接到客户端的服务器连接。
 
 sv_idle
-    δʹ���ҿ��������ڿͻ�����ѯ�ķ��������ӡ�
+    未使用且可立即用于客户机查询的服务器连接。
 
 sv_used
-    �Ѿ����ó��� `server_check_delay` ʱ���ķ��������ӣ�
-    ������������ʹ��֮ǰ����Ҫ���� `server_check_query`��
+    已经闲置超过 `server_check_delay` 时长的服务器连接，
+    所以在它可以使用之前，需要运行 `server_check_query`。
 
 sv_tested
-    ��ǰ�������� `server_reset_query` �� `server_check_query` �ķ��������ӡ�
+    当前正在运行 `server_reset_query` 或 `server_check_query` 的服务器连接。
 
 sv_login
-    ��ǰ���ڵ�¼�����еķ��������ӡ�
+    当前正在登录过程中的服务器连接。
 
 maxwait
-    �����е�һ�������ϵģ��ͻ����Ѿ��ȴ��˶೤ʱ�䣬����ơ�
-    �������ʼ���ӣ���ô��������ǰ�����ӳش���������ٶȲ����졣
-    ԭ������Ƿ��������ع��ػ� **pool_size** ���ù�С��
+    队列中第一个（最老的）客户端已经等待了多长时间，以秒计。
+    如果它开始增加，那么服务器当前的连接池处理请求的速度不够快。
+    原因可能是服务器负载过重或 **pool_size** 设置过小。
 
 pool_mode
-    ����ʹ�õ����ӳ�ģʽ��
+    正在使用的连接池模式。
 
 SHOW LISTS;
 -----------
 
-���У������У�����ʾ�����ڲ���Ϣ��
+在列（不是行）中显示以下内部信息：
 
 databases
-    ���ݿ������
+    数据库计数。
 
 users
-    �û�������
+    用户计数。
 
 pools
-    ���ӳؼ�����
+    连接池计数。
 
 free_clients
-    ���пͻ��˼�����
+    空闲客户端计数。
 
 used_clients
-    ʹ���˵Ŀͻ��˼�����
+    使用了的客户端计数。
 
 login_clients
-    �� **login** ״̬�еĿͻ��˼�����
+    在 **login** 状态中的客户端计数。
 
 free_servers
-    ���з�����������
+    空闲服务器计数。
 
 used_servers
-    ʹ���˵ķ�����������
+    使用了的服务器计数。
 
 SHOW USERS;
 -----------
 
 name
-    �û���
+    用户名
 
 pool_mode
-    �û���д��pool_mode�����ʹ��Ĭ��ֵ���򷵻�NULL��
+    用户重写的pool_mode，如果使用默认值，则返回NULL。
 
 SHOW DATABASES;
 ---------------
 
 name
-    ���õ����ݿ�������ơ�
+    配置的数据库项的名称。
 
 host
-    pgbouncer���ӵ���������
+    pgbouncer连接到的主机。
 
 port
-    pgbouncer���ӵ��Ķ˿ڡ�
+    pgbouncer连接到的端口。
 
 database
-    pgbouncer���ӵ���ʵ�����ݿ����ơ�
+    pgbouncer连接到的实际数据库名称。
 
 force_user
-    ���û��������ַ�����һ����ʱ��pgbouncer��PostgreSQL
-    ֮������ӱ�ǿ�Ƹ��������û������ܿͻ����û���˭��
+    当用户是连接字符串的一部分时，pgbouncer和PostgreSQL
+    之间的连接被强制给给定的用户，不管客户端用户是谁。
 
 pool_size
-    ���������ӵ����������
+    服务器连接的最大数量。
 
 pool_mode
-    ���ݿ����дpool_mode�����ʹ��Ĭ��ֵ�򷵻�NULL��
+    数据库的重写pool_mode，如果使用默认值则返回NULL。
 
 SHOW FDS;
 ---------
 
-�ڲ����� - ��ʾ�븽�����ڲ�״̬һ��ʹ�õ�fds�б���
+内部命令 - 显示与附带的内部状态一起使用的fds列表。
 
-�����ӵ��û�ʹ���û���"pgbouncer"ʱ��
-ͨ��Unix�׽������Ӳ����������й�����ͬ��UID��ʵ�ʵ�fdsͨ�����Ӵ��ݡ�
-�û������ڽ�������������
-ע�⣺�ⲻ������Windows������
+当连接的用户使用用户名"pgbouncer"时，
+通过Unix套接字连接并具有与运行过程相同的UID，实际的fds通过连接传递。
+该机制用于进行在线重启。
+注意：这不适用于Windows机器。
 
-���������ֹ�ڲ��¼�ѭ���������ʹ��PgBouncerʱ��Ӧ��ʹ������
+此命令还会阻止内部事件循环，因此在使用PgBouncer时不应该使用它。
 
 fd
-    �ļ���������ֵ��
+    文件描述符数值。
 
 task
-    **pooler**��**client** �� **server** ֮һ��
+    **pooler**、**client** 或 **server** 之一。
 
 user
-    ʹ�ø�FD�����ӵ��û���
+    使用该FD的连接的用户。
 
 database
-    ʹ�ø�FD�����ӵ����ݿ⡣
+    使用该FD的连接的数据库。
 
 addr
-    ʹ��FD�����ӵ�IP��ַ�����ʹ��unix�׽������� **unix**��
+    使用FD的连接的IP地址，如果使用unix套接字则是 **unix**。
 
 port
-    ʹ��FD�����ӵĶ˿ڡ�
+    使用FD的连接的端口。
 
 cancel
-    ȡ�������ӵļ���
+    取消此连接的键。
 
 link
-    ��Ӧ������/�ͻ��˵�fd�����������ΪNULL��
+    对应服务器/客户端的fd。如果空闲则为NULL。
 
 SHOW CONFIG;
 ------------
 
-��ʾ��ǰ���������ã�һ��һ�������������ֶΣ�
+显示当前的配置设置，一行一个，带有下列字段：
 
 key
-    ���ñ�����
+    配置变量名
 
 value
-    ����ֵ
+    配置值
 
 changeable
-    **yes** ���� **no**����ʾ����ʱ�����Ƿ�ɸ��ġ�
-    ����� **no**����ñ���ֻ��������ʱ�ı䡣
+    **yes** 或者 **no**，显示运行时变量是否可更改。
+    如果是 **no**，则该变量只能在启动时改变。
 
 SHOW DNS_HOSTS;
 ---------------
 
-��ʾDNS�����е���������
+显示DNS缓存中的主机名。
 
 hostname
-    ��������
+    主机名。
 
 ttl
-    ֱ����һ�β��Ҿ����˶����롣
+    直到下一次查找经过了多少秒。
 
 addrs
-    ��ַ�Ķ��ŷָ����б���
+    地址的逗号分隔的列表。
 
 SHOW DNS_ZONES
 --------------
 
-��ʾ�����е�DNS����
+显示缓存中的DNS区域。
 
 zonename
-    �������ơ�
+    区域名称。
 
 serial
-    ��ǰ���кš�
+    当前序列号。
 
 count
     
-    ���ڴ��������������
+    属于此区域的主机名。
 
 
-���̿�������
+过程控制命令
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 PAUSE [db];
 -----------
 
-PgBouncer���ԶϿ����з����������ӣ����ȵȴ����в�ѯ��ɡ�
-���в�ѯ���֮ǰ������᷵�ء������ݿ���������ʱʹ�á�
+PgBouncer尝试断开所有服务器的连接，首先等待所有查询完成。
+所有查询完成之前，命令不会返回。在数据库重新启动时使用。
 
-����ṩ�����ݿ����ƣ���ôֻ�и����ݿ⽫����ͣ��
+如果提供了数据库名称，那么只有该数据库将被暂停。
 
 DISABLE db;
 -----------
 
-�ܾ��������ݿ��ϵ������¿ͻ������ӡ�
+拒绝给定数据库上的所有新客户端连接。
 
 ENABLE db;
 ----------
 
-����һ���� **DISABLE** ����֮�������µĿͻ������ӡ�
+在上一个的 **DISABLE** 命令之后允许新的客户端连接。
 
 KILL db;
 --------
 
-����ɾ���������ݿ��ϵ����пͻ��˺ͷ��������ӡ�
+立即删除给定数据库上的所有客户端和服务器连接。
 
 SUSPEND;
 --------
 
-�����׽��ֻ�������ˢ�£�PgBouncerֹͣ���������ϵ����ݡ�
-�����л�����Ϊ��֮ǰ������᷵�ء���PgBouncer������������ʱʹ�á�
+所有套接字缓冲区被刷新，PgBouncer停止监听它们上的数据。
+在所有缓冲区为空之前，命令不会返回。在PgBouncer在线重新启动时使用。
 
 RESUME [db];
 ------------
 
-��֮ǰ�� **PAUSE** �� **SUSPEND** �����лָ�������
+从之前的 **PAUSE** 或 **SUSPEND** 命令中恢复工作。
 
 SHUTDOWN;
 ---------
 
-PgBouncer���̽����˳���
+PgBouncer进程将会退出。
 
 RELOAD;
 -------
 
-PgBouncer���̽����¼������������ļ������¿ɸı�����á�
+PgBouncer进程将重新加载它的配置文件并更新可改变的设置。
 
-�ź�
+信号
 ~~~~~~~
 
 SIGHUP
-    ���¼������á����ڿ���̨�Ϸ������� **RELOAD;** ��ͬ��
+    重新加载配置。与在控制台上发出命令 **RELOAD;** 相同。
 
 SIGINT
-    ��ȫ�رա����ڿ���̨�Ϸ��� **PAUSE;** �� **SHUTDOWN;** ��ͬ��
+    安全关闭。与在控制台上发出 **PAUSE;** 和 **SHUTDOWN;** 相同。
 
 SIGTERM
-    �����رա����ڿ���̨�Ϸ��� **SHUTDOWN;** ��ͬ��
+    立即关闭。与在控制台上发出 **SHUTDOWN;** 相同。
 
-Libevent����
+Libevent设置
 ~~~~~~~~~~~~~~~~~
 
-����libevent���ĵ�::
+来自libevent的文档::
 
-  ����ͨ���ֱ����û�������EVENT_NOEPOLL��EVENT_NOKQUEUE��
-  VENT_NODEVPOLL��EVENT_NOPOLL��EVENT_NOSELECT�����ö�
-  epoll��kqueue��devpoll��poll��select��֧�֡�
+  可以通过分别设置环境变量EVENT_NOEPOLL、EVENT_NOKQUEUE、
+  VENT_NODEVPOLL、EVENT_NOPOLL或EVENT_NOSELECT来禁用对
+  epoll、kqueue、devpoll、poll或select的支持。
 
-  ͨ�����û�������EVENT_SHOW_METHOD��libevent��ʾ��ʹ�õ��ں�֪ͨ������
+  通过设置环境变量EVENT_SHOW_METHOD，libevent显示它使用的内核通知方法。
 
-�ּ�
+又见
 ========
 
-pgbouncer(5) - ���������������ֲ�ҳ
+pgbouncer(5) - 配置设置描述的手册页
 
 https://pgbouncer.github.io/
 
